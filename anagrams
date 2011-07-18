@@ -23,15 +23,12 @@
 ; Dictionary file to use
 (define dict-file "/usr/share/dict/words")
 
-(define (foldl pred lst initial-value)
-  (define (doit l v)
+(define (foldl pred initial-value lst)
+  (define (doit v l)
             (if (null? l)
                 v
-                (doit (cdr l) (pred (car l) v))))
-  (doit lst initial-value))
-
-(define (foldr pred lst initial-value)
-  (foldl pred (reverse lst) initial-value))
+                (doit (pred (car l) v) (cdr l))))
+  (doit initial-value lst))
 
 (define (range from to)
   (define (doit i acc)
@@ -51,8 +48,8 @@
 (define (list-flatten lst)
   (foldl (lambda (e a)
            (list-merge e a))
-         lst
-         (list)))
+         (list)
+         lst))
 
 (define (list-remove lst i)
   (define (doit l c acc)
@@ -89,8 +86,8 @@
                                (cons (doit (list-remove l i)
                                            (cons/all (list-ref l i) acc))
                                      a))
-                             (range 0 (- (length l) 1))
-                             (list)))))
+                             (list)
+                             (range 0 (- (length l) 1))))))
   (doit lst (list (list))))
 
 ; Used to crudely filter out dictionary words that can't possibly be
@@ -147,8 +144,8 @@
                        (newline)
                        0)
                      retval))
-               needles
-               1))))
+               1
+               needles))))
 
 (exit (anagrams (program-arguments)))
 
