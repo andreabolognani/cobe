@@ -16,7 +16,7 @@
 ; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 ; Include generic routines
-(load "common.scm.inc")
+(load "lib/scheme/common.scm.inc")
 
 ; Dictionary file to use
 (define dict-file "/usr/share/dict/words")
