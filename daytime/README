@@ -1,0 +1,18 @@
+Some time ago I've seen a cool gmail theme which updates the color of the
+background basing on the current time. I found that nice, and I tought
+about how could would be to have a time-updating desktop wallpaper!
+
+Then some time passed, until in this period I decided to learn the Perl
+programming language. I thought this is a good idea despite I already know
+Python: a lot of legacy stuff is written in Perl>, and that makes it a
+good thing to put into a Resumè!
+
+As I became more familiar with the language I decided to write this
+program. From time to time it changes your desktop gradient according to
+the time of the day. You may fully appreciate it when combined with a
+transparent-png wallpaper!
+
+It works by default under GNOME2, but also GNOME3 is supported.
+Unfortunately it sucks a lot of CPU, which is weird, since it sleeps in
+background and wakes up from time to time. This could be due to the crappy
+perl implementation of "sleep" (?).

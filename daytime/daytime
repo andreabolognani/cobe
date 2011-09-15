@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+use constant {
+    HOURS_PER_DAY => 24,
+    SECONDS_PER_MINUTE => 60,
+    DEFAULT_UPDATE_MINUTES => 10,
+    HELP => "Usage: daytime [--desktop=NAME] [--update=MINUTES]\n",
+};
+
+use Getopt::Long;
+
+# -- Fork-Exec launcher ------------------------------------------------ #
+
+sub Launch
+{
+    my $pid = fork;
+    if ($pid == 0) {
+        exec @_;
+    }
+    wait;
+}
+
+# -- Color setter for GNOME using gconf-tool --------------------------- #
+
+sub Init ($)
+{
+    my $opts = shift;
+    my $cmd_template = $opts->{cmd_template};
+    Launch(split(' ', sprintf($cmd_template, $opts->{path_shading},
+                              $opts->{shading_type}))
+          );
+}
+
+sub SetColors (\@$)
+{
+    my ($colors, $opts) = @_;
+    my $cmd_template = $opts->{cmd_template};
+
+    Launch(split(' ', sprintf($cmd_template, $opts->{path_primary},
+                              sprintf("#%06X", $colors->[0])))
+          );
+    Launch(split(' ', sprintf($cmd_template, $opts->{path_secondary},
+                              sprintf("#%06X", $colors->[1])))
+          );
+}
+
+# -- RGB manipulation functions ---------------------------------------- #
+
+sub UnpackRGB ($)
+{
+    my $value = shift;
+    return unpack('xC3', pack('N', $value));
+}
+
+sub PackRGB (\@)
+{
+    my $bytes = shift;
+    return unpack('N', pack('xC3', @{$bytes}))
+}
+
+sub Interpolate ($$$)
+{
+    my @between = (0, 0, 0);
+    my @prev = UnpackRGB shift;
+    my @next = UnpackRGB shift;
+    my $ratio = shift;
+
+    die "Debug: invalid ratio $ratio" unless ($ratio >= 0 && $ratio < 1);
+
+    for (my $i = 0; $i < 3; $i ++) {
+        $between[$i] = int($prev[$i] + ($next[$i] - $prev[$i]) * $ratio);
+    }
+    return PackRGB @between;
+}
+
+# -- Set current color basing on time ---------------------------------- #
+
+sub SetCurrent (\@$)
+{
+    my $arr = shift;
+    my $opts = shift;
+    my ($sec, $min, $hour) = localtime time;
+    my $ratio = @{$arr} / HOURS_PER_DAY * ( $min / 60 + $sec / 3600 );
+
+    my $pos = $hour;
+    if ($pos % 2) {
+        $pos -= 1;
+        $ratio += @{$arr} / HOURS_PER_DAY;
+    }
+    $pos /= 2;
+
+    my $prevs = $arr->[$pos ++];
+    my $nexts = $arr->[$pos % @{$arr}];
+
+    my @colors = (0, 0);
+    for (my $i = 0; $i < 2; $i ++) {
+        $colors[$i] = Interpolate($prevs->[$i], $nexts->[$i], $ratio);
+    }
+
+    SetColors(@colors, $opts->{desktop});
+}
+
+# -- Colors of the day ------------------------------------------------- #
+
+# We move gradually from a value to another in a time of two hours. Each
+# line of the array is a pair of colors mapping respectively the sky and
+# the horizont.
+#
+# Those constants are simply taken arbitrarly with some common sense.
+
+my @day_colors = (
+    [0x000000, 0x000000],
+    [0x000000, 0x004A97],
+    [0x001F40, 0x819FC0],
+    [0x0C69CB, 0xBCCAEB],
+    [0xC0CEEB, 0xC0FBEB],
+    [0x5FFAEB, 0xC0CDEB],
+    [0x6993D1, 0x5FFAEB],
+    [0x3E7F8B, 0xA56B8D],
+    [0x3E438C, 0xD42042],
+    [0x00064C, 0x9D1944],
+    [0x02052E, 0x481594],
+    [0x000000, 0x181380]
+);
+
+# -- Some settings depending on the Desktop Environment in use --------- #
+
+my %gnome2_settings = (
+    path_primary   => '/desktop/gnome/background/primary_color',
+    path_secondary => '/desktop/gnome/background/secondary_color',
+    path_shading   => '/desktop/gnome/background/color_shading_type',
+    shading_type   => 'vertical-gradient',
+    cmd_template   => 'gconftool -s %s -t string %s'
+);
+
+my %gnome3_settings = (
+    path_primary   => "/org/gnome/desktop/background/primary-color",
+    path_secondary => "/org/gnome/desktop/background/secondary-color",
+    path_shading   => "/org/gnome/desktop/background/color-shading-type",
+    shading_type   => 'vertical',
+    cmd_template   => 'dconf write %s \'%s\''
+);
+
+my %settings = (
+    gnome2 => \%gnome2_settings,
+    gnome3 => \%gnome3_settings
+);
+
+# -- Getting options --------------------------------------------------- #
+
+sub Options
+{
+    my $desktop = 'gnome2';
+    my $update = DEFAULT_UPDATE_MINUTES;
+    my $help = 0;
+
+    my $opts = GetOptions(
+        'd|desktop=s' => \$desktop,
+        'u|update=i' => \$update,
+        'h|help' => \$help
+    ) and not $help or die HELP;
+
+    grep {$_ eq $desktop} keys(%settings)
+        or die "Supported desktops: ".join(", ", keys(%settings))."\n";
+
+    $update >= 1
+        or die "I won't let you set $update as update time\n";
+
+    return { "desktop" => $settings{$desktop},
+             "update" => $update,
+           };
+}
+
+my $opts = Options;
+Init($opts->{desktop});
+
+while (1) {
+    SetCurrent(@day_colors, $opts);
+    sleep(SECONDS_PER_MINUTE * $opts->{update});
+}
