@@ -1,0 +1,11 @@
+A working-but-not-so-intelligent C++ implementation of the patricia-tree
+algorithm. It's a variant of the radix-tree algorithm.
+
+I implemented this piece of crap just for fun. You know, when you have a
+lot of important stuff to do very quickly, and you waste your time in
+something totally useless, just because you are sad for your tiny amount
+of time… for your *actual* job…
+
+This implementation works, in the sense it can print a patricia-tree using
+graphviz… but lacks both of style and the (essential!) lookup
+functionality! So basically it sucks.
