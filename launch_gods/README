@@ -1,0 +1,5 @@
+Do you remember when GODS needed to startup many instances of servers and
+clients for a distributed system project?
+
+This is some kind of multi-launcher for programs. It could be modified to
+obtain something more general. Or maybe also not.

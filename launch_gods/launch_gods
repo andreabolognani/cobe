@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+from __future__ import print_function, division
+import sys
+import itertools
+import subprocess
+
+SERVER_NAME = "myserv"
+CLIENT_NAME = "myclient"
+
+SERVER_STR = "server:"
+CLIENT_STR = "client:"
+
+def build_cmd (progname, opts):
+    def aux ():
+        yield progname
+        while True:
+            out = "".join(iter(opts.next, ','))
+            if out: yield out
+            else: raise StopIteration
+    return list( aux() )
+
+def launch_clients (opts, nc):
+    cmd = build_cmd(CLIENT_NAME, opts)
+    for i in xrange(nc):
+        subprocess.Popen(cmd)
+
+def launch_server (opts):
+    subprocess.Popen(build_cmd(SERVER_NAME, opts))
+
+def main (argv=None):
+    if not argv: argv = sys.argv
+
+    if len(argv) < 3:
+        print("Usage {0} <nclients> ...", file=sys.stderr)
+        return 1
+
+    try:
+        nclients = int(argv[1])
+        if nclients < 1: raise ValueError
+    except ValueError:
+        print("What about a POSITIVE NUMERIC VALUE for clients?",
+              "You moron...", file=sys.stderr)
+        return 1
+
+    for c in itertools.islice(argv, 2, None):
+        if c.startswith(CLIENT_STR):
+            launch_clients(itertools.islice(c, len(CLIENT_STR), None),
+                           nclients)
+        elif c.startswith(SERVER_STR):
+            launch_server(itertools.islice(c, len(SERVER_STR), None))
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
+
