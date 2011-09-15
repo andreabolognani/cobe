@@ -1,0 +1,11 @@
+A long time ago (yesterday) War asked us whether we knew about a language
+training software. The idea is pretty trivial:
+- the program writes a word
+- you write back the translation
+
+Challenge accepted, I wrote it in a few rows of python. :D
+The program is totally stupid, doesn't collect any statistics and allows
+you to provide just one translation for each word… I wrote it in 10 minutes
+just for fun.
+
+You'll need a dictionary: the 'dict.txt' file is a valid example.

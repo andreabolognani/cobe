@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+#
+# lang - language trainer written in 10 minutes
+# Copyright 2011    Giovanni Simoni <giovanni.simoni@roundhousecode.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+
+from __future__ import print_function, division
+import sys
+import itertools as it
+from random import Random
+from optparse import OptionParser
+
+try: range = xrange
+except: pass
+
+# Load a dictionary from the dict file
+def load_dict (fd):
+    fix_row = lambda row : it.imap(str.strip, row.split())
+    nocomm = it.ifilterfalse(lambda x : x.startswith('#'), fd)
+    pairs = it.imap(fix_row, nocomm)
+    return dict(pairs)
+
+# Declare and parse command line
+def options (argv):
+    P = OptionParser()
+    P.add_option('-n', dest='n_tests', type='int', default=20)
+    P.add_option('-d', dest='dict_name', type='string', default='')
+    o, a = P.parse_args(argv)
+    if not o.dict_name:
+        print('Please specify me a dictionary file (-d option)',
+              file=sys.stderr)
+        P.print_help()
+        return None
+    return o, a
+
+# Ask the required number of questions randomly
+def ask_questions (D, opts):
+    keys = list(D.iteritems())
+    r = Random()
+    r.shuffle(keys)
+    if len(keys) < opts.n_tests:
+        print('Warning: the dictionary has not enogh terms!',
+              file=sys.stderr)
+        qas = iter(keys)
+    else:
+        qas = it.islice(keys, opts.n_tests)
+    for q, a in qas:
+        print('"{0}"? '.format(q))
+        ans = raw_input('>').strip()
+        if a == ans:
+            print('Correct')
+        else:
+            print('Wrong')
+
+def main (argv=None):
+    if not argv: argv = sys.argv
+
+    try:
+        o, a = options(argv)
+    except:
+        return 1
+    f = open(o.dict_name)
+    D = load_dict(f)
+    f.close()
+
+    try:
+        ask_questions(D, o)
+    except EOFError:
+        print('goodbye')
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
+

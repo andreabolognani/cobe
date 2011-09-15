@@ -1,0 +1,6 @@
+# Each row of the dictionary is composed by a tab-separated pair of terms,
+# in the two languages. Lines starting with '#' are treated as comments.
+culo	ass
+camicia	shirt
+monnezza	garbage
+merda	crap
