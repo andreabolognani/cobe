@@ -1,0 +1,6 @@
+Sometimes you need a couple of points for your experiments. For instance,
+suppose you are implementing a clustering system and you want to see if it
+works for points in the euclidean space...
+
+Try run it in a terminal: you'll just understand how it works. Oh, you'll
+need SDL headers in order to compile it!
