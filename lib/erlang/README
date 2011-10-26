@@ -1,0 +1,9 @@
+Reverse polish notation calculator
+
+Try with:
+
+    > c(polish).
+    {ok,polish}
+    > polish:rpc([9, 7, '+', 4, 5, '+', '*']).
+    144
+
