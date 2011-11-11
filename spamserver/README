@@ -1,0 +1,44 @@
+SPAMSERVER - Example application using OTP (Open Telecom Platform).
+
+
+The logic is totally dumb, but it's a trivial, nice and working piece of
+software. A stupid server runs, processess can be subscribed and they get
+beaconed once per second. Processess can also be unsubscribed.
+
+Here is an example 'erl' session showing the usage:
+
+    5> c(spamserver).
+    {ok,spamserver}
+    6> spamserver:start().
+    {ok,<0.59.0>}
+    7> spamserver ! culo.
+    culo
+    Got culo, don't get that…
+    8> c(test).
+    {ok,test}
+    9> [P, Q] = [spawn(test, listen_and_print, []) || _ <- [1,2]].
+    [<0.67.0>,<0.68.0>]
+    10> spamserver:insert(P).
+    ok
+    I've got 'spam'
+    ...
+    I've got 'spam'
+    11> spamserver:insert(Q).
+    ok
+    I've got 'spam'
+    I've got 'spam'
+    ...
+    I've got 'spam'
+    I've got 'spam'
+    12> spamserver:remove(P).
+    Got targets! Starting spam
+    ok
+    I've got 'spam'
+    I've got 'spam'
+    ...
+    I've got 'spam'
+    I've got 'spam'
+    13> spamserver:remove(Q).
+    No targets! Stopping spam
+    ok
+
