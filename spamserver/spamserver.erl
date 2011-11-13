@@ -1,5 +1,5 @@
 -module(spamserver).
--export([start/0, insert/1, remove/1]).
+-export([start/0, insert/1, remove/1, report/0]).
 
 -behavior(gen_server).
 -export([init/1, code_change/3, handle_call/3, handle_cast/2,
@@ -8,7 +8,6 @@
 -define(TIMEOUT, 1000).
 -record(state, {targets=[],
                 timeout=infinity}).
-
 add_target (State, T) ->
     #state{targets=[T | State#state.targets],
            timeout=?TIMEOUT}.
@@ -47,9 +46,21 @@ handle_call ({stop, T}, _, State) ->
     NewState = rem_target(State, T),
     {reply, ok, NewState, NewState#state.timeout};
 
-handle_call (report, {From, Ref}, State) ->
-    From ! {Ref, State#state.targets},
-    {reply, check_mail, State}.
+handle_call (report, From, State) ->
+    io:format(standard_error, "Cannot reply immediately...~n", []),
+    spawn(fun () -> send_report(From, State) end),
+    % supposing that generating the report takes some time...
+    {reply, computing, State, State#state.timeout}.
+
+send_report (From, State) ->
+    {Pid, Ref} = From,
+    io:format(standard_error, "Generating report...~n", []),
+    receive X -> X
+    after 1000 ->
+        io:format(standard_error, "Report ready!~n", [])
+    end,
+    io:format(standard_error, "...sending to ~p (~p)~n", [Pid, Ref]),
+    gen_server:reply(From, State).
 
 handle_cast (_, State) ->
     {noreply, State}.
@@ -75,3 +86,5 @@ insert (P) ->
 remove (P) ->
     gen_server:call(?MODULE, {stop, P}).
 
+report () ->
+    gen_server:call(?MODULE, report).
