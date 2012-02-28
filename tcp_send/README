@@ -1,0 +1,10 @@
+A simple two-processes send-receive in TCP
+
+Point: building up a tcp socket in C is usually a mess:
+ -  Pig-disgusting APIs provided by our poor legacy C library;
+ -  Bad enough non-reentrant stuff from everywhere
+ -  A hard to remember sequence of calls to achieve in the correct way
+
+This program is simple: it forks into a server and a client. The client
+sends "hello world" to the server, and that's it. The implementation,
+however, is correct, robust and reentrant in all its parts.
