@@ -1,0 +1,55 @@
+#!/bin/sh
+# notify-after -- Pop a notification after a command has been run
+# Copyright (C) 2012  Andrea Bolognani <andrea.bolognani@roundhousecode.com>
+# This code is licensed under the terms of the WTFPL
+
+if test "${#}" -lt 1; then
+	echo "Usage: ${0} CMD [ARGS..]" >&2
+	exit 1
+fi
+
+GDBUS=`which gdbus`
+
+if ! test -x "${GDBUS}"; then
+	echo "${0}: gdbus not found" >&2
+	exit 1
+fi
+
+# Actually run the command
+${@}
+
+# Save the return code for later use
+RETVAL="${?}"
+
+# Arguments used when creating the notification
+APP_NAME="${1}"                 # Name of the command
+REPLACES_ID="0"                 # Never replace another notification
+APP_ICON=""                     # No icon
+SUMMARY="ok"                    # Assume everything worked
+BODY="${@}"                     # Full command line
+ACTIONS="[]"                    # No interaction allowed
+HINTS="{\"transient\": <true>}" # Don't keep the notification around
+EXPIRE_TIMEOUT=3000             # Drop the notification after three seconds
+
+# Change the summary if the return code didn't indicate a success
+if test "${RETVAL}" -ne 0; then
+	SUMMARY="failed"
+fi
+
+# Use gdbus to pop a notification
+${GDBUS} call \
+         --session \
+         --dest org.freedesktop.Notifications \
+         --object-path /org/freedesktop/Notifications \
+         --method org.freedesktop.Notifications.Notify \
+         "${APP_NAME}" \
+         "${REPLACES_ID}" \
+         "${APP_ICON}" \
+         "${SUMMARY}" \
+         "${BODY}" \
+         "${ACTIONS}" \
+         "${HINTS}" \
+         "${EXPIRE_TIMEOUT}" >/dev/null 2>&1
+
+# Use the same return code as the called command
+exit "${RETVAL}"
