@@ -65,7 +65,7 @@ int sock_data_init (sock_data_t *s, const char *IPaddr, int port)
         return 1;
     } else {
         /* NOTE: returns 0 on error */
-        return inet_aton(IPaddr, &s->addr.sin_addr);
+        return inet_pton(AF_INET, IPaddr, &s->addr.sin_addr);
     }
 }
 
@@ -188,17 +188,16 @@ int tcp_connect (sock_data_t *sd, int *e)
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1) {
-        *e = errno;
+        if (e) *e = errno;
         return -1;
     }
 
     if (connect(fd, (struct sockaddr *) &sd->addr,
             sizeof(struct sockaddr_in)) == -1) {
-        *e = errno;
+        if (e) *e = errno;
         close(fd);
         return -2;
     }
-
     sd->fd = fd;
 
     return 0;
