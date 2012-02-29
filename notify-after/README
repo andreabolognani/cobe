@@ -1,0 +1,22 @@
+Suppose you're about to start a build for a project you're working on.
+
+You know it's going to take some time, so it would be the perfect time to
+catch up on your emails; on the other hand, you're aware of the fact that
+some of the new code you've just added might cause the build to fail.
+
+The solution: instead of starting the build using, ie.
+
+	$ make
+
+you start it like
+
+	$ notify-after make
+
+The notify-after script will start the build for you, and pop up a nice
+notification after it has completed, either succesfully or unsuccesfully:
+this way, you can stop checking your build every ten seconds and spend
+the build time doing something useful[1].
+
+
+[1] http://xkcd.com/303/ is of course a possibility, but you'll have to
+    make sure the notification daemon plays a sound as well.
