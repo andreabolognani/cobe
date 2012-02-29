@@ -1,0 +1,18 @@
+General purpose Makefiles
+
+-- Makefile.c-cc----------------------------------------------------------
+
+You may need to compile something on-the-fly, without caring much about
+dependencies, auto-tools and stuff. For instance, let's say you've a bunch
+of C or C++ files, one of which has a `main` function. You want to compile
+them at once in the most simple way possible. The Makefile.c-cc can
+compile at a glance a small one-directory project: just copy on your
+directory, strip away the `.c-cc` extension, and here you go!
+
+Notice: inside the Makefile I'm using the `cc` file extension for C++. You
+may want to change it into `cpp` for some projects in which this extension
+is used.
+
+-- Note ------------------------------------------------------------------
+
+If adding makefiles, please update this list
