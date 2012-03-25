@@ -100,7 +100,10 @@ ssize_t esc_send (int fd, const void *buffer, size_t src_size)
     }
     dst[i ++] = BYTE_EOT;
 
-    return write(fd, dst, i);
+    if (write(fd, dst, i) < 0) {
+        return -1;
+    }
+    return j;
 }
 
 ssize_t esc_recv (int fd, void *buffer, size_t size)
