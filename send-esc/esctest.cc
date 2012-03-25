@@ -66,6 +66,14 @@ void read_and_compare (std::list<size_t> &chunks, int infd,
     max_size *= BUF_REDUCE_RATIO;
     char buffer[max_size];
 
+    struct {
+        size_t passed;
+        size_t sim_failed;
+        size_t failed;
+    } stats;
+
+    std::fill_n((uint8_t *)&stats, sizeof(stats), 0);
+
     while (!chunks.empty()) {
         size_t nxt_size, real_size;
         const char *estr;
@@ -83,6 +91,7 @@ void read_and_compare (std::list<size_t> &chunks, int infd,
             case -2:
                 /* Advance of missing part */
                 orig.seekg(nxt_size, std::fstream::cur);
+                stats.sim_failed ++;
             case -1:
                 estr = sys_errlist[errno];
                 std::cout << "\tError: " << estr << std::endl;
@@ -94,13 +103,21 @@ void read_and_compare (std::list<size_t> &chunks, int infd,
                 } else {
                     char cmp_buf[real_size];
                     orig.readsome(cmp_buf, real_size);
-                    if (std::equal(cmp_buf, cmp_buf + real_size, buffer))
+                    if (std::equal(cmp_buf, cmp_buf+real_size, buffer)) {
+                        stats.passed ++;
                         std::cout << "\tTest passed" << std::endl;
-                    else
+                    } else {
+                        stats.failed ++;
                         std::cout << "\tTest not passed" << std::endl;
+                    }
                 }
         }
     }
+
+    std::cout << "-------- STATISTICS --------" << std::endl
+              << "\tpassed: " << stats.passed << std::endl
+              << "\tsimulated failures: " << stats.sim_failed << std::endl
+              << "\tactual failures: " << stats.failed << std::endl;
 }
 
 static
