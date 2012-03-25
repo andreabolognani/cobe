@@ -1,0 +1,24 @@
+This module (esc.c, esc.h) exports a `send` function and a `recv` function
+which help in defining a message-based transmission model over a
+stream-based communication channel (e.g. socket).
+
+For details on the API consult the header file.
+
+A bunch of notes:
+
+  - The functions have been tested on files: you may modify them and add
+    the flags used for transmission on socket if you need;
+
+  - For the same reason they internally use `read` and `write` instead of
+    `send` and `recv`: you may add flags and stuff...
+
+About testing:
+
+    The esctest.cc file contains a testing application which gets
+    compiled launching make. It's pretty strightforward to understand: it
+    reads a file, dumps through the escaping mechanism on another file
+    (same name, adds the ".escaped" extension), then rewinds the file and
+    checks the data to be correct.
+
+    The required file may be both a textfile or a binary file: the system
+    is resilient to the encoding.
