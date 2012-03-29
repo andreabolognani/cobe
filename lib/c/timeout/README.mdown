@@ -1,0 +1,10 @@
+Passive timeout system
+======================
+
+This module provides a very simple passive timeout. Passive in the sense
+it won't wake up the processes by signaling: you just check it
+periodically. This is meant for loosely periodic system, without real-time
+constraints.
+
+Take a look to the header: it's just straightforward.
+
