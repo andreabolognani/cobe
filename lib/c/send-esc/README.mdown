@@ -1,3 +1,6 @@
+Transmission escaping system
+============================
+
 This module (esc.c, esc.h) exports a `send` function and a `recv` function
 which help in defining a message-based transmission model over a
 stream-based communication channel (e.g. socket).
