@@ -10,8 +10,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static const uint8_t BYTE_ESC = 0x1b;
-static const uint8_t BYTE_EOT = 0x04;
+#define BYTE_ESC 0x1b
+#define BYTE_EOT 0x04
+
+#include <stdio.h>
 
 typedef struct {
     uint32_t msg_len;
@@ -53,24 +55,27 @@ static ssize_t recv_header (int fd, header_t *hdr)
     return sizeof(header_t);
 }
 
-static void flush_message (int fd)
+static int flush_message (int fd)
 {
     int state;
     uint8_t byte;
+    int cnt;
+    ssize_t recv_ret;
 
     state = 0;
-    for (;;) {
-        if (read(fd, (void *)&byte, sizeof(byte)) <= 0) return;
-
+    cnt = 0;
+    while ((recv_ret = read(fd, (void *)&byte, sizeof(byte))) > 0) {
+        cnt ++;
         switch (state) {
             case 0: /* Last byte was normal */
-                if (byte == BYTE_EOT) return;
+                if (byte == BYTE_EOT) return cnt;
                 if (byte == BYTE_ESC) state ++;
                 break;
             case 1: /* Last byte was escape */
                 state --;
         }
     }
+    return recv_ret;
 }
 
 ssize_t esc_send (int fd, const void *buffer, size_t src_size)
@@ -81,8 +86,14 @@ ssize_t esc_send (int fd, const void *buffer, size_t src_size)
     unsigned i, j, esc;
     header_t hdr;
 
+    errno = 0;
+    if (src_size == 0) {
+        return 0;
+    }
     header_set_len(&hdr, src_size);
-    send_header(fd, &hdr);
+    if (send_header(fd, &hdr) < 0) {
+        return -1;
+    }
 
     src = (const uint8_t *)buffer;
     esc = 0;
@@ -109,16 +120,16 @@ ssize_t esc_send (int fd, const void *buffer, size_t src_size)
 ssize_t esc_recv (int fd, void *buffer, size_t size)
 {
     uint8_t *check;
-    int i, j, esc;
+    int esc;
     header_t hdr;
     size_t target, cumulated;
 
+    errno = 0;
     if (recv_header(fd, &hdr) <= 0) return -1;
 
     /* Note: we need room for the EOT byte, so minimum length will need
      * one extra byte */
-    target = header_get_len(&hdr) + 1;
-    errno = 0;
+    target = header_get_len(&hdr);
     if (size < target) {
         flush_message(fd);
         errno = ENOBUFS;
@@ -130,6 +141,7 @@ ssize_t esc_recv (int fd, void *buffer, size_t size)
     cumulated = 0;
     while (target > 0) {
         ssize_t n;
+        int i, j;
 
         n = read(fd, (void *)check, target);
         if (n <= 0) return n;
@@ -145,7 +157,8 @@ ssize_t esc_recv (int fd, void *buffer, size_t size)
                     esc = 1;
                     break;
                 case BYTE_EOT:
-                    return cumulated + j;
+                    errno = EPROTO;
+                    return -3;
                 default:
                     check[j ++] = b;
             }
@@ -157,8 +170,16 @@ ssize_t esc_recv (int fd, void *buffer, size_t size)
         cumulated += j;
     }
 
-    /* This is here just for safety. The function should return inside the
-     * cycle, and if we got here the protocol is just screwed */
-    return -1;
+    switch (flush_message(fd)) {
+        case -1:    /* Connection error */
+            return -1;
+        case 0:     /* Socket closed */
+            return 0;
+        case 1:     /* We got the EOF immediately, good! */
+            return cumulated;
+        default:    /* Broken protocol */
+            errno = EPROTO;
+            return -3;
+    }
 }
 
