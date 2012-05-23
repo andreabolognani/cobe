@@ -1,7 +1,15 @@
 Copy on Write!
 ==============
 
-Just for fun, I've written this piece of cra...Code! that implements the
-copy-on-write for generic objects. Is tougth to be working both in as
-plain object and as superclass of a generic (and hopefully big) object.
+Just for fun, I've written this piece of cra...code! No, seriously, I
+like it. It implements a copy-on-write logic for generic C++ objects.
 
+It works as follows:
+
+  - Extend the `cow::Cow class (`cow-type.hh`)`
+  - Call the `access_ro()` on read-only access;
+  - Call the `access_rw()` on read-write access.
+
+The `cow-vector.hh` shows an implementation example, extending the
+`std::vector` class as copy-on-write. The `main.cc` file tests the
+functionality and gives a proof of concept.
