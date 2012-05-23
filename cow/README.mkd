@@ -1,0 +1,7 @@
+Copy on Write!
+==============
+
+Just for fun, I've written this piece of cra...Code! that implements the
+copy-on-write for generic objects. Is tougth to be working both in as
+plain object and as superclass of a generic (and hopefully big) object.
+
