@@ -43,18 +43,6 @@ typedef struct {
 } sock_data_t;
 
 static inline
-int sock_data_cmp (const sock_data_t *s1, const sock_data_t *s2)
-{
-    return memcmp(&s1->addr, &s2->addr, sizeof(struct sockaddr_in));
-}
-
-static inline
-int sock_data_equal (const sock_data_t *s1, const sock_data_t *s2)
-{
-    return sock_data_cmp(s1, s2) == 0;
-}
-
-static inline
 int sock_data_init (sock_data_t *s, const char *IPaddr, int port)
 {
     s->addr.sin_family = AF_INET;
