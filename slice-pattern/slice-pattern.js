@@ -85,7 +85,6 @@ function drawBeachBall (args) {
 		debug ("(" + args.origin.x + "," + args.origin.y + ") (" + x2 + "," + y2 + ") (" + x3 + "," + y3 + ")");
 
 		args.canvas.drawLine ({
-			strokeStyle: color,
 			fillStyle: color,
 			closed: true,
 			x1: args.origin.x,
