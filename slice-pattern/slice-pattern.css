@@ -1,0 +1,14 @@
+html {
+	margin: 0.2em;
+	font-family: monospace;
+	font-size: 1em;
+	line-height: 1.2em;
+}
+
+p {
+	margin: 0.2em 0 0.2em 0;
+}
+
+canvas {
+	border: 1px solid;
+}
