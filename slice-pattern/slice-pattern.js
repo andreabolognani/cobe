@@ -124,10 +124,10 @@ function main() {
 	while (radius > 0) {
 
 		if ((radius / step) % 2 == 0) {
-			colors = ["#abc", "#def"];
+			colors = ["#003040", "#F22477"];
 		}
 		else {
-			colors = ["#def", "#abc"];
+			colors = ["#F22477", "#003040"];
 		}
 
 		drawBeachBall ({
