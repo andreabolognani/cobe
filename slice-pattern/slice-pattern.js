@@ -15,135 +15,157 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-function debug (message) {
+function debug(message) {
 
-	$("#debug").append ("<p>" + message + "</p>");
+	$("#debug").append("<p>" + message + "</p>");
 }
 
-function inRange (v, min, max) {
+function inRange(v, min, max) {
 
 	while (v < min) {
-		v += Math.abs (max - min + 1);
+		v += Math.abs(max - min + 1);
 	}
 
 	while (v > max) {
-		v -= Math.abs (max - min + 1);
+		v -= Math.abs(max - min + 1);
 	}
 
 	return v;
 }
 
-function normalizeAngle (angle) {
+function normalizeAngle(angle) {
 
-	return inRange (angle, 0, 359);
+	return inRange(angle, 0, 359);
 }
 
-function toRadians (degrees) {
+function toRadians(degrees) {
 
 	return degrees / 180 * Math.PI;
 }
 
-function drawBeachBall (args) {
+function drawBeachBall(args) {
 
-	var slice;
+	var canvas = args.canvas;
+	var colors = args.colors;
+	var slices = args.slices;
+	var origin = args.origin;
+	var radius = args.radius;
+	var angleOffset = args.angleOffset;
 	var start;
 	var end;
 	var i;
 
-	if (args.slices % 2 != 0) {
-		debug ("Number of slices must be even!");
-		return;
-	}
+	slice = 360 / slices;
 
-	slice = 360 / args.slices;
+	start = normalizeAngle(angleOffset);
+	end = normalizeAngle(start + slice);
 
-	start = normalizeAngle (args.offset);
-	end = normalizeAngle (start + slice);
+	for (i = 0; i < slices; i++) {
 
-	for (i = 0; i < args.slices; i++) {
+		var color = colors[inRange(i, 0, 1)];
 
-		var color = args.colors[inRange (i, 0, 1)];
-
-		debug ("start=" + start + ", end=" + end);
-
-		args.canvas.drawArc ({
+		canvas.drawArc({
 			strokeStyle: color,
 			fillStyle: color,
 			closed: true,
-			x: args.origin.x,
-			y: args.origin.y,
-			radius: args.radius,
+			x: origin.x,
+			y: origin.y,
+			radius: radius,
 			start: start,
 			end: end
 		});
 
-		var x2 = args.origin.x + args.radius * Math.sin(toRadians (start));
-		var y2 = args.origin.y - args.radius * Math.cos(toRadians (start));
-		var x3 = args.origin.x + args.radius * Math.sin(toRadians (end));
-		var y3 = args.origin.y - args.radius * Math.cos(toRadians (end));
+		var x2 = origin.x + radius * Math.sin(toRadians(start));
+		var y2 = origin.y - radius * Math.cos(toRadians(start));
+		var x3 = origin.x + radius * Math.sin(toRadians(end));
+		var y3 = origin.y - radius * Math.cos(toRadians(end));
 
-		debug ("(" + args.origin.x + "," + args.origin.y + ") (" + x2 + "," + y2 + ") (" + x3 + "," + y3 + ")");
-
-		args.canvas.drawLine ({
+		canvas.drawLine({
 			fillStyle: color,
 			closed: true,
-			x1: args.origin.x,
-			y1: args.origin.y,
+			x1: origin.x,
+			y1: origin.y,
 			x2: x2,
 			y2: y2,
 			x3: x3,
 			y3: y3
 		});
 
-		start = normalizeAngle (start + slice);
-		end = normalizeAngle (end + slice);
+		start = normalizeAngle(start + slice);
+		end = normalizeAngle(end + slice);
+	}
+}
+
+function drawFrame(args) {
+
+	var slices = args.slices;
+	var origin = args.origin;
+	var radiusOffset = args.radiusOffset;
+	var radiusIncrement = args.radiusIncrement;
+	var angleOffset = args.angleOffset;
+
+	var radius;
+	var angleIncrement;
+
+	angleIncrement = 360 / slices;
+
+	radius = Math.max(args.canvas.width(), args.canvas.height());
+	if (radius % args.radiusIncrement > 0) {
+		radius = Math.floor(radius / args.radiusIncrement) * args.radiusIncrement;
+	}
+
+	while (radius > 0) {
+
+		drawBeachBall({
+			canvas: args.canvas,
+			colors: args.colors,
+			slices: slices,
+			origin: origin,
+			radius: radius,
+			angleOffset: angleOffset,
+		});
+
+		// Decrease the radius to draw a smaller circle, increase
+		// the angle so that colors get automatically swapped
+		radius -= radiusIncrement;
+		angleOffset += angleIncrement;
 	}
 }
 
 function main() {
 
-	var canvas;
-	var radius;
-	var slices;
-	var step;
-	var offset;
-	var colors;
+	// Configurable values
+	const COLOR_LIGHT = "#F22477";
+	const COLOR_DARK = "#003040";
+	const SLICES = 40;
+	const ANGLE_OFFSET = 90;
+	const RADIUS_OFFSET = 0;
+	const RADIUS_INCREMENT = 70;
 
-	slices = 20;
-	step = 100;
-	offset = 90;
-
-	canvas = $("canvas");
-
-	radius = Math.max (canvas.width (), canvas.height ());
-	if (radius % step > 0) {
-		radius -= radius % step;
-		radius += step;
+	if (SLICES % 2 != 0) {
+		debug("The number of slices must be even!");
+		return;
 	}
 
-	while (radius > 0) {
+	var canvas = $("canvas");
+	var origin = {
+		x : Math.floor(canvas.width() / 2),
+		y : Math.floor(canvas.height() / 2)
+	};
+	var colors = [
+		COLOR_LIGHT,
+		COLOR_DARK
+	];
 
-		if ((radius / step) % 2 == 0) {
-			colors = ["#003040", "#F22477"];
-		}
-		else {
-			colors = ["#F22477", "#003040"];
-		}
-
-		drawBeachBall ({
-			canvas: canvas,
-			origin: {
-				x: canvas.width () / 2,
-				y: canvas.height () / 2
-			},
-			radius: radius,
-			slices: slices,
-			offset: offset,
-			colors: colors
-		});
-
-		radius -= step;
-	}
+	drawFrame({
+		canvas: canvas,
+		colors: colors,
+		slices: SLICES,
+		origin: origin,
+		angleOffset: ANGLE_OFFSET,
+		radiusOffset: RADIUS_OFFSET,
+		radiusIncrement: RADIUS_INCREMENT
+	});
 }
 
-$(document).ready (main);
+$(document).ready(main);
