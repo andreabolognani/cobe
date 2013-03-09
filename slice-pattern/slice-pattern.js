@@ -142,20 +142,26 @@ function main() {
 	const RADIUS_OFFSET = 0;
 	const RADIUS_INCREMENT = 70;
 
+	var canvas;
+	var colors;
+	var origin;
+
 	if (SLICES % 2 != 0) {
 		debug("The number of slices must be even!");
 		return;
 	}
 
-	var canvas = $("canvas");
-	var origin = {
-		x : Math.floor(canvas.width() / 2),
-		y : Math.floor(canvas.height() / 2)
-	};
-	var colors = [
+	canvas = $("canvas");
+	colors = [
 		COLOR_LIGHT,
 		COLOR_DARK
 	];
+
+	// Draw the first frame starting from the center of the canvas
+	origin = {
+		x : Math.floor(canvas.width() / 2),
+		y : Math.floor(canvas.height() / 2)
+	};
 
 	drawFrame({
 		canvas: canvas,
@@ -165,6 +171,25 @@ function main() {
 		angleOffset: ANGLE_OFFSET,
 		radiusOffset: RADIUS_OFFSET,
 		radiusIncrement: RADIUS_INCREMENT
+	});
+
+	// React to clicks by moving the origin
+	canvas.click(function(e) {
+
+		origin = {
+			x: e.pageX - e.target.offsetLeft,
+			y: e.pageY - e.target.offsetTop
+		};
+
+		drawFrame({
+			canvas: canvas,
+			colors: colors,
+			slices: SLICES,
+			origin: origin,
+			angleOffset: ANGLE_OFFSET,
+			radiusOffset: RADIUS_OFFSET,
+			radiusIncrement: RADIUS_INCREMENT
+		});
 	});
 }
 
