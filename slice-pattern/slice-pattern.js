@@ -142,9 +142,11 @@ function drawFrame(args) {
 		{ x: args.canvas.width(), y: args.canvas.height() },
 		{ x: 0, y: args.canvas.height() }
 	]);
+	radius -= radiusOffset;
 	if (radius % args.radiusIncrement > 0) {
 		radius = (Math.floor(radius / args.radiusIncrement) + 1) * args.radiusIncrement;
 	}
+	radius += radiusOffset;
 
 	while (radius > 0) {
 
@@ -171,7 +173,7 @@ function main() {
 	const COLOR_DARK = "#003040";
 	const SLICES = 40;
 	const ANGLE_OFFSET = 90;
-	const RADIUS_OFFSET = 0;
+	const RADIUS_OFFSET = 20;
 	const RADIUS_INCREMENT = 70;
 
 	var canvas;
