@@ -17,7 +17,7 @@
 
 function debug(message) {
 
-	$("#debug").append("<p>" + message + "</p>");
+	$("#debug").text(message);
 }
 
 function inRange(v, min, max) {
