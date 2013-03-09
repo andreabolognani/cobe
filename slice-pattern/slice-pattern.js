@@ -48,6 +48,26 @@ function toRadians(degrees) {
 	return degrees / 180 * Math.PI;
 }
 
+function distance(a, b) {
+
+	return Math.sqrt(Math.pow((b.x - a.x), 2) + Math.pow((b.y - a.y), 2));
+}
+
+function maxDistance(points) {
+
+	var max;
+	var len;
+
+	max = 0;
+	len = points.length;
+
+	for (var i = 1; i < len; ++i) {
+		max = Math.max(distance(points[0], points[i]), max);
+	}
+
+	return max;
+}
+
 function drawBeachBall(args) {
 
 	var canvas = args.canvas;
@@ -114,9 +134,16 @@ function drawFrame(args) {
 
 	angleIncrement = 360 / slices;
 
-	radius = Math.max(args.canvas.width(), args.canvas.height());
+	// Calculate the maximum radius needed to completely fill the canvas
+	radius = maxDistance([
+		origin,
+		{ x: 0, y: 0 },
+		{ x: args.canvas.width(), y: 0 },
+		{ x: args.canvas.width(), y: args.canvas.height() },
+		{ x: 0, y: args.canvas.height() }
+	]);
 	if (radius % args.radiusIncrement > 0) {
-		radius = Math.floor(radius / args.radiusIncrement) * args.radiusIncrement;
+		radius = (Math.floor(radius / args.radiusIncrement) + 1) * args.radiusIncrement;
 	}
 
 	while (radius > 0) {
