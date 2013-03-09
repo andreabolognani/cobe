@@ -20,6 +20,11 @@ function debug(message) {
 	$("#debug").text(message);
 }
 
+function debugAppend(message) {
+
+	$("#debug").text($("#debug").text() + " " + message);
+}
+
 function inRange(v, min, max) {
 
 	while (v < min) {
