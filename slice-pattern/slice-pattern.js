@@ -172,13 +172,12 @@ function main() {
 	const COLOR_LIGHT = "#F22477";
 	const COLOR_DARK = "#003040";
 	const SLICES = 40;
-	const ANGLE_OFFSET = 90;
-	const RADIUS_OFFSET = 20;
 	const RADIUS_INCREMENT = 70;
 
 	var canvas;
 	var colors;
 	var origin;
+	var radiusOffset;
 
 	if (SLICES % 2 != 0) {
 		debug("The number of slices must be even!");
@@ -197,15 +196,8 @@ function main() {
 		y : Math.floor(canvas.height() / 2)
 	};
 
-	drawFrame({
-		canvas: canvas,
-		colors: colors,
-		slices: SLICES,
-		origin: origin,
-		angleOffset: ANGLE_OFFSET,
-		radiusOffset: RADIUS_OFFSET,
-		radiusIncrement: RADIUS_INCREMENT
-	});
+	angleOffset = 0;
+	radiusOffset = 0;
 
 	// React to clicks by moving the origin
 	canvas.click(function(e) {
@@ -220,11 +212,28 @@ function main() {
 			colors: colors,
 			slices: SLICES,
 			origin: origin,
-			angleOffset: ANGLE_OFFSET,
-			radiusOffset: RADIUS_OFFSET,
+			angleOffset: angleOffset,
+			radiusOffset: radiusOffset,
 			radiusIncrement: RADIUS_INCREMENT
 		});
 	});
+
+	// Animate by continuously changing angle and radius
+	window.setInterval(function() {
+
+		angleOffset = inRange(angleOffset + 2, 0, 359);
+		radiusOffset = inRange(radiusOffset + 2, 0, RADIUS_INCREMENT);
+
+		drawFrame({
+			canvas: canvas,
+			colors: colors,
+			slices: SLICES,
+			origin: origin,
+			angleOffset: angleOffset,
+			radiusOffset: radiusOffset,
+			radiusIncrement: RADIUS_INCREMENT
+		});
+	}, 100);
 }
 
 $(document).ready(main);
