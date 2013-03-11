@@ -142,11 +142,8 @@ function drawFrame(args) {
 		{ x: args.canvas.width(), y: args.canvas.height() },
 		{ x: 0, y: args.canvas.height() }
 	]);
-	radius -= radiusOffset;
-	if (radius % args.radiusIncrement > 0) {
-		radius = (Math.floor(radius / args.radiusIncrement) + 1) * args.radiusIncrement;
-	}
-	radius += radiusOffset;
+	radius = (Math.floor(radius / radiusIncrement) + 1);
+	radius = radius * radiusIncrement + radiusOffset;
 
 	while (radius > 0) {
 
@@ -221,8 +218,16 @@ function main() {
 	// Animate by continuously changing angle and radius
 	window.setInterval(function() {
 
-		angleOffset = inRange(angleOffset + 2, 0, 359);
-		radiusOffset = inRange(radiusOffset + 2, 0, RADIUS_INCREMENT);
+		var radius = radiusOffset + 3;
+		radiusOffset = inRange(radiusOffset + 3, 0, RADIUS_INCREMENT - 1);
+		angleOffset = inRange(angleOffset + 1, 0, 359);
+
+		// Switch colors
+		if (radiusOffset != radius) {
+			var tmp = colors[0];
+			colors[0] = colors[1];
+			colors[1] = tmp;
+		}
 
 		drawFrame({
 			canvas: canvas,
