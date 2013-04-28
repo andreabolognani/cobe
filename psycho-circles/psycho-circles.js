@@ -1,4 +1,4 @@
-/* slice-pattern.js - Draw a colorful pattern on a canvas
+/* psycho-circles.js - Draw a colorful pattern on a canvas
  * Copyright (C) 2013  Andrea Bolognani <andrea.bolognani@roundhousecode.com>
  *
  * This program is free software; you can redistribute it and/or modify
