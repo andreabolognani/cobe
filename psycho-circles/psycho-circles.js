@@ -1,4 +1,4 @@
-/* psycho-circles.js - Draw a colorful pattern on a canvas
+/* psycho-circles.js - Draw a colorful animated pattern on a canvas
  * Copyright (C) 2013  Andrea Bolognani <andrea.bolognani@roundhousecode.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -15,17 +15,25 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-function debug(message) {
 
-	$("#debug").text(message);
+// -----------------
+//  Utility methods
+// -----------------
+
+var Util;
+
+Util = {}
+
+// Convert degrees to radians
+
+Util.toRadians = function(degrees) {
+
+	return degrees / 180 * Math.PI;
 }
 
-function debugAppend(message) {
+// Force a value within a well-defined minimum and maximum
 
-	$("#debug").text($("#debug").text() + " " + message);
-}
-
-function inRange(v, min, max) {
+Util.inRange = function(v, min, max) {
 
 	while (v < min) {
 		v += Math.abs(max - min + 1);
@@ -38,22 +46,24 @@ function inRange(v, min, max) {
 	return v;
 }
 
-function normalizeAngle(angle) {
+// Normalize an angle (expressed in degrees)
 
-	return inRange(angle, 0, 359);
+Util.normalizeAngle = function(degrees) {
+
+	return Util.inRange(degrees, 0, 359);
 }
 
-function toRadians(degrees) {
+// Calculate the distance between two points
 
-	return degrees / 180 * Math.PI;
-}
-
-function distance(a, b) {
+Util.distance = function(a, b) {
 
 	return Math.sqrt(Math.pow((b.x - a.x), 2) + Math.pow((b.y - a.y), 2));
 }
 
-function maxDistance(points) {
+// Calculate the distance between a reference point and the
+// farthest in a list of other points 
+
+Util.maxDistance = function(origin, points) {
 
 	var max;
 	var len;
@@ -61,184 +71,205 @@ function maxDistance(points) {
 	max = 0;
 	len = points.length;
 
-	for (var i = 1; i < len; ++i) {
-		max = Math.max(distance(points[0], points[i]), max);
+	for (var i = 0; i < len; ++i) {
+		max = Math.max(Util.distance(origin, points[i]), max);
 	}
 
 	return max;
 }
 
-function drawBeachBall(args) {
 
-	var canvas = args.canvas;
-	var colors = args.colors;
-	var slices = args.slices;
-	var origin = args.origin;
-	var radius = args.radius;
-	var angleOffset = args.angleOffset;
+// -----------------
+//  Animation class
+// -----------------
+
+var Animation;
+
+Animation = function(canvas) {
+
+	// Settings
+
+	this.colors = [
+		"#223366",
+		"#3377bb",
+		"#77aabb",
+		"#ccdddd",
+		"#99cccc"
+	];
+	this.slices = 30;
+	this.partRadius = 60;
+	this.partAngle = 360 / this.slices;
+	this.frameRadiusIncrement = 2;
+	this.frameAngleIncrement = 2;
+	this.frameInterval = 20;
+
+	// State
+
+	this.canvas = canvas;
+	this.canvasWidth = canvas.width();
+	this.canvasHeight = canvas.height();
+	this.origin = {
+		x: Math.floor(this.canvasWidth / 2),
+		y: Math.floor(this.canvasHeight / 2)
+	};
+	this.animate = false;
+	this.angle = 0;
+	this.radius = 0;
+}
+
+Animation.prototype.update = function() {
+
+	// Increase radius and angle by the configured amount
+
+	this.radius = Util.inRange(this.radius + this.frameRadiusIncrement, 0, this.partRadius - 1);
+	this.angle = Util.normalizeAngle(this.angle + this.frameAngleIncrement);
+
+	// Adjust angle when the numer of parts changes so that the
+	// transition between frames is smooth
+
+	if (this.radius <= 0) {
+		this.angle = Util.normalizeAngle(this.angle + this.partAngle);
+	}
+}
+
+Animation.prototype.paint = function() {
+
+	if (this.animate) {
+		new Frame(this).paint();
+	}
+}
+
+
+// -------------
+//  Frame class
+// -------------
+
+var Frame;
+
+Frame = function(animation) {
+
+	this.animation = animation;
+}
+
+Frame.prototype.paintPart = function(radius, angle) {
+
 	var start;
 	var end;
-	var i;
 
-	slice = 360 / slices;
+	start = Util.normalizeAngle(angle);
+	end = Util.normalizeAngle(start + this.animation.partAngle);
 
-	start = normalizeAngle(angleOffset);
-	end = normalizeAngle(start + slice);
+	for (var i = 0; i < this.animation.slices; i++) {
 
-	for (i = 0; i < slices; i++) {
+		var color;
+		var x2;
+		var y2;
+		var x3;
+		var y3;
 
-		var color = colors[inRange(i, 0, 1)];
+		// Cycle through all the available colors
 
-		canvas.drawArc({
+		color = this.animation.colors[Util.inRange(i, 0, this.animation.colors.length - 1)];
+
+		this.animation.canvas.drawArc({
 			strokeStyle: color,
 			fillStyle: color,
 			closed: true,
-			x: origin.x,
-			y: origin.y,
+			x: this.animation.origin.x,
+			y: this.animation.origin.y,
 			radius: radius,
 			start: start,
 			end: end
 		});
 
-		var x2 = origin.x + radius * Math.sin(toRadians(start));
-		var y2 = origin.y - radius * Math.cos(toRadians(start));
-		var x3 = origin.x + radius * Math.sin(toRadians(end));
-		var y3 = origin.y - radius * Math.cos(toRadians(end));
+		x2 = this.animation.origin.x + radius * Math.sin(Util.toRadians(start));
+		y2 = this.animation.origin.y - radius * Math.cos(Util.toRadians(start));
+		x3 = this.animation.origin.x + radius * Math.sin(Util.toRadians(end));
+		y3 = this.animation.origin.y - radius * Math.cos(Util.toRadians(end));
 
-		canvas.drawLine({
+		this.animation.canvas.drawLine({
 			fillStyle: color,
 			closed: true,
-			x1: origin.x,
-			y1: origin.y,
+			x1: this.animation.origin.x,
+			y1: this.animation.origin.y,
 			x2: x2,
 			y2: y2,
 			x3: x3,
 			y3: y3
 		});
 
-		start = normalizeAngle(start + slice);
-		end = normalizeAngle(end + slice);
+		start = Util.normalizeAngle(start + this.animation.partAngle);
+		end = Util.normalizeAngle(end + this.animation.partAngle);
 	}
 }
 
-function drawFrame(args) {
+Frame.prototype.paint = function() {
 
-	var slices = args.slices;
-	var origin = args.origin;
-	var radiusOffset = args.radiusOffset;
-	var radiusIncrement = args.radiusIncrement;
-	var angleOffset = args.angleOffset;
-
+	var angle;
 	var radius;
-	var angleIncrement;
 
-	angleIncrement = 360 / slices;
+	angle = this.animation.angle;
 
-	// Calculate the maximum radius needed to completely fill the canvas
-	radius = maxDistance([
-		origin,
-		{ x: 0, y: 0 },
-		{ x: args.canvas.width(), y: 0 },
-		{ x: args.canvas.width(), y: args.canvas.height() },
-		{ x: 0, y: args.canvas.height() }
-	]);
-	radius = (Math.floor(radius / radiusIncrement) + 1);
-	radius = radius * radiusIncrement + radiusOffset;
+	// Calculate the minimum radius needed to completely fill the canvas
+
+	radius = Util.maxDistance(
+		this.animation.origin,
+		[
+			{ x: 0, y: 0 },
+			{ x: this.animation.canvasWidth, y: 0 },
+			{ x: this.animation.canvasWidth, y: this.animation.canvasHeight },
+			{ x: 0, y: this.animation.canvasHeight }
+		]
+	);
+	radius = Math.floor(radius / this.animation.partRadius) + 1;
+	radius *= this.animation.partRadius;
+	radius += this.animation.radius;
 
 	while (radius > 0) {
 
-		drawBeachBall({
-			canvas: args.canvas,
-			colors: args.colors,
-			slices: slices,
-			origin: origin,
-			radius: radius,
-			angleOffset: angleOffset,
-		});
+		this.paintPart(radius, angle);
 
-		// Decrease the radius to draw a smaller circle, increase
-		// the angle so that colors get automatically swapped
-		radius -= radiusIncrement;
-		angleOffset += angleIncrement;
+		// Decrease the radius to draw a smaller pattern, increase
+		// the angle to shift the colors
+
+		angle = Util.normalizeAngle(angle + this.animation.partAngle);
+		radius -= this.animation.partRadius;
 	}
 }
 
+
+// -------------
+//  Entry point
+// -------------
+
 function main() {
 
-	// Configurable values
-	const COLOR_LIGHT = "#F22477";
-	const COLOR_DARK = "#003040";
-	const SLICES = 40;
-	const RADIUS_INCREMENT = 70;
+	var animation = new Animation($("canvas"));
 
-	var canvas;
-	var colors;
-	var origin;
-	var radiusOffset;
+	animation.canvas.click(function(e) {
 
-	if (SLICES % 2 != 0) {
-		debug("The number of slices must be even!");
-		return;
-	}
+		// Move the origin to the click location
 
-	canvas = $("canvas");
-	colors = [
-		COLOR_LIGHT,
-		COLOR_DARK
-	];
-
-	// Draw the first frame starting from the center of the canvas
-	origin = {
-		x : Math.floor(canvas.width() / 2),
-		y : Math.floor(canvas.height() / 2)
-	};
-
-	angleOffset = 0;
-	radiusOffset = 0;
-
-	// React to clicks by moving the origin
-	canvas.click(function(e) {
-
-		origin = {
+		animation.origin = {
 			x: e.pageX - e.target.offsetLeft,
 			y: e.pageY - e.target.offsetTop
 		};
 
-		drawFrame({
-			canvas: canvas,
-			colors: colors,
-			slices: SLICES,
-			origin: origin,
-			angleOffset: angleOffset,
-			radiusOffset: radiusOffset,
-			radiusIncrement: RADIUS_INCREMENT
-		});
+		// Toggle animation on click
+
+		animation.animate = !animation.animate;
 	});
 
-	// Animate by continuously changing angle and radius
+	// Set up update callback
+
 	window.setInterval(function() {
 
-		var radius = radiusOffset + 3;
-		radiusOffset = inRange(radiusOffset + 3, 0, RADIUS_INCREMENT - 1);
-		angleOffset = inRange(angleOffset + 1, 0, 359);
+		animation.update();
+		animation.paint();
 
-		// Switch colors
-		if (radiusOffset != radius) {
-			var tmp = colors[0];
-			colors[0] = colors[1];
-			colors[1] = tmp;
-		}
+	}, animation.frameInterval);
 
-		drawFrame({
-			canvas: canvas,
-			colors: colors,
-			slices: SLICES,
-			origin: origin,
-			angleOffset: angleOffset,
-			radiusOffset: radiusOffset,
-			radiusIncrement: RADIUS_INCREMENT
-		});
-	}, 100);
+	animation.animate = true;
 }
 
 $(document).ready(main);
