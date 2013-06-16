@@ -242,19 +242,29 @@ Frame.prototype.paint = function() {
 function main() {
 
 	var animation;
+	var slices;
 	var running;
 
 	animation = new Animation($("#canvas"));
+
+	// Create widgets
+
+	slices = $("#slices").spinner();
 	running = $("#running").button();
 
 	window.setInterval(function() {
 
-		// Only update when the animation is running
+		// Only update the canvas when the animation is running
 
 		if (animation.running) {
 			animation.update();
 			animation.paint();
 		}
+
+		// Update controls
+
+		slices.spinner("value", animation.slices);
+
 	}, animation.frameInterval);
 
 	animation.canvas.click(function(e) {
@@ -266,7 +276,30 @@ function main() {
 			y: e.pageY - e.target.offsetTop
 		};
 
-		animation.paint();
+		if (!animation.running) {
+			animation.paint();
+		}
+	});
+
+	slices.spinner("option", "min", 2);
+	slices.spinner("option", "max", 360);
+	slices.on("spin", function(event, ui) {
+
+		while (360 % ui.value != 0) {
+			if (ui.value > animation.slices) {
+				ui.value++;
+			}
+			else {
+				ui.value--;
+			}
+		}
+
+		animation.slices = ui.value
+		animation.partAngle = 360 / animation.slices;
+
+		if (!animation.running) {
+			animation.paint();
+		}
 	});
 
 	running.click(function() {
