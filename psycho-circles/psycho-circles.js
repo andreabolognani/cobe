@@ -242,15 +242,19 @@ Frame.prototype.paint = function() {
 function main() {
 
 	var animation;
-	var slices;
-	var running;
+	var controls;
 
 	animation = new Animation($("#canvas"));
 
 	// Create widgets
 
-	slices = $("#slices").spinner();
-	running = $("#running").button();
+	controls = {
+		slices: $("#slicesControl").spinner(),
+		running: $("#runningControl").button()
+	};
+
+	controls.slices.spinner("option", "min", 2);
+	controls.slices.spinner("option", "max", 360);
 
 	window.setInterval(function() {
 
@@ -263,7 +267,7 @@ function main() {
 
 		// Update controls
 
-		slices.spinner("value", animation.slices);
+		controls.slices.spinner("value", animation.slices);
 
 	}, animation.frameInterval);
 
@@ -281,9 +285,7 @@ function main() {
 		}
 	});
 
-	slices.spinner("option", "min", 2);
-	slices.spinner("option", "max", 360);
-	slices.on("spin", function(event, ui) {
+	controls.slices.on("spin", function(e, ui) {
 
 		while (360 % ui.value != 0) {
 			if (ui.value > animation.slices) {
@@ -302,7 +304,7 @@ function main() {
 		}
 	});
 
-	running.click(function() {
+	controls.running.click(function() {
 		animation.running = !animation.running;
 	});
 
