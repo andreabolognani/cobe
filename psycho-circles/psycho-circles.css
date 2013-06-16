@@ -9,12 +9,19 @@ body {
 	line-height: 1.2em;
 }
 
-p {
-	margin: 0.2em 0.5em 0.2em 0.5em;
-}
-
-canvas {
-	margin: 0.5em auto 1em auto;
+#canvas {
 	display: block;
 	border: 1px solid black;
+}
+
+#content-container {
+	width: auto;
+	margin: 0.5em;
+	float: left;
+}
+
+#controls-container {
+	width: auto;
+	margin: 0.5em;
+	float: left;
 }

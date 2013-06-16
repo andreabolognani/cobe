@@ -112,7 +112,7 @@ Animation = function(canvas) {
 		x: Math.floor(this.canvasWidth / 2),
 		y: Math.floor(this.canvasHeight / 2)
 	};
-	this.animate = false;
+	this.running = false;
 	this.angle = 0;
 	this.radius = 0;
 }
@@ -133,10 +133,7 @@ Animation.prototype.update = function() {
 }
 
 Animation.prototype.paint = function() {
-
-	if (this.animate) {
-		new Frame(this).paint();
-	}
+	new Frame(this).paint();
 }
 
 
@@ -244,7 +241,21 @@ Frame.prototype.paint = function() {
 
 function main() {
 
-	var animation = new Animation($("canvas"));
+	var animation;
+	var running;
+
+	animation = new Animation($("#canvas"));
+	running = $("#running").button();
+
+	window.setInterval(function() {
+
+		// Only update when the animation is running
+
+		if (animation.running) {
+			animation.update();
+			animation.paint();
+		}
+	}, animation.frameInterval);
 
 	animation.canvas.click(function(e) {
 
@@ -255,21 +266,16 @@ function main() {
 			y: e.pageY - e.target.offsetTop
 		};
 
-		// Toggle animation on click
-
-		animation.animate = !animation.animate;
+		animation.paint();
 	});
 
-	// Set up update callback
+	running.click(function() {
+		animation.running = !animation.running;
+	});
 
-	window.setInterval(function() {
+	// Draw the first frame
 
-		animation.update();
-		animation.paint();
-
-	}, animation.frameInterval);
-
-	animation.animate = true;
+	animation.paint();
 }
 
 $(document).ready(main);
