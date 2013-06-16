@@ -250,11 +250,16 @@ function main() {
 
 	controls = {
 		slices: $("#slicesControl").spinner(),
+		radius: $("#radiusControl").spinner(),
 		running: $("#runningControl").button()
 	};
 
+	// Set up limits for controls
+
 	controls.slices.spinner("option", "min", 2);
 	controls.slices.spinner("option", "max", 360);
+	controls.radius.spinner("option", "min", 1);
+	controls.radius.spinner("option", "max", 200);
 
 	window.setInterval(function() {
 
@@ -268,6 +273,7 @@ function main() {
 		// Update controls
 
 		controls.slices.spinner("value", animation.slices);
+		controls.radius.spinner("value", animation.partRadius);
 
 	}, animation.frameInterval);
 
@@ -298,6 +304,15 @@ function main() {
 
 		animation.slices = ui.value
 		animation.partAngle = 360 / animation.slices;
+
+		if (!animation.running) {
+			animation.paint();
+		}
+	});
+
+	controls.radius.on("spin", function(e, ui) {
+
+		animation.partRadius = ui.value;
 
 		if (!animation.running) {
 			animation.paint();
