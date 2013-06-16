@@ -251,6 +251,7 @@ function main() {
 	controls = {
 		slices: $("#slicesControl").spinner(),
 		partRadius: $("#partRadiusControl").spinner(),
+		frameRadiusIncrement: $("#frameRadiusIncrementControl").spinner(),
 		frameAngleIncrement: $("#frameAngleIncrementControl").spinner(),
 		running: $("#runningControl").button()
 	};
@@ -261,6 +262,8 @@ function main() {
 	controls.slices.spinner("option", "max", 360);
 	controls.partRadius.spinner("option", "min", 0);
 	controls.partRadius.spinner("option", "max", 200);
+	controls.frameRadiusIncrement.spinner("option", "min", 0);
+	controls.frameRadiusIncrement.spinner("option", "max", animation.partRadius);
 	controls.frameAngleIncrement.spinner("option", "min", 0);
 	controls.frameAngleIncrement.spinner("option", "max", 360);
 
@@ -277,6 +280,7 @@ function main() {
 
 		controls.slices.spinner("value", animation.slices);
 		controls.partRadius.spinner("value", animation.partRadius);
+		controls.frameRadiusIncrement.spinner("value", animation.frameRadiusIncrement);
 		controls.frameAngleIncrement.spinner("value", animation.frameAngleIncrement);
 
 	}, animation.frameInterval);
@@ -321,6 +325,11 @@ function main() {
 		if (!animation.running) {
 			animation.paint();
 		}
+	});
+
+	controls.frameRadiusIncrement.on("spin", function(e, ui) {
+
+		animation.frameRadiusIncrement = ui.value;
 	});
 
 	controls.frameAngleIncrement.on("spin", function(e, ui) {
