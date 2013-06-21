@@ -78,6 +78,25 @@ Util.maxDistance = function(origin, points) {
 	return max;
 }
 
+// Given a value, find the closest approximation that
+// satisfies the provided constraint
+
+Util.adaptToConstraint = function(previous, next, constraint) {
+
+	if (next >= previous) {
+		while (!constraint(next)) {
+			next++
+		}
+	}
+	else {
+		while (!constraint(next)) {
+			next--;
+		}
+	}
+
+	return next;
+}
+
 
 // -----------------
 //  Animation class
@@ -260,10 +279,10 @@ function main() {
 
 	controls.slices.spinner("option", "min", 2);
 	controls.slices.spinner("option", "max", 360);
-	controls.partRadius.spinner("option", "min", 0);
+	controls.partRadius.spinner("option", "min", 10);
 	controls.partRadius.spinner("option", "max", 200);
 	controls.frameRadiusIncrement.spinner("option", "min", 0);
-	controls.frameRadiusIncrement.spinner("option", "max", animation.partRadius);
+	controls.frameRadiusIncrement.spinner("option", "max", 200);
 	controls.frameAngleIncrement.spinner("option", "min", 0);
 	controls.frameAngleIncrement.spinner("option", "max", 360);
 
@@ -294,6 +313,9 @@ function main() {
 			y: e.pageY - e.target.offsetTop
 		};
 
+		// Update the canvas immediately if the
+		// animation is not running
+
 		if (!animation.running) {
 			animation.paint();
 		}
@@ -301,17 +323,22 @@ function main() {
 
 	controls.slices.on("spin", function(e, ui) {
 
-		while (360 % ui.value != 0) {
-			if (ui.value > animation.slices) {
-				ui.value++;
-			}
-			else {
-				ui.value--;
-			}
+		// Only stick to valid values
+
+		ui.value = Util.adaptToConstraint(
+			animation.slices,
+			ui.value,
+			function(v) {
+				return v != 0 && (360 % v) == 0
+			});
+
+		if (ui.value >= 2 && ui.value <= 360) {
+			animation.slices = ui.value
+			animation.partAngle = 360 / animation.slices;
 		}
 
-		animation.slices = ui.value
-		animation.partAngle = 360 / animation.slices;
+		// Update the canvas immediately if the
+		// animation is not running
 
 		if (!animation.running) {
 			animation.paint();
@@ -320,7 +347,38 @@ function main() {
 
 	controls.partRadius.on("spin", function(e, ui) {
 
+		var frameRadiusIncrement;
+
+		// Update frameRadiusIncrement accordingly
+
+		frameRadiusIncrement = animation.frameRadiusIncrement;
+
+		if (ui.value > animation.partRadius) {
+			frameRadiusIncrement++;
+		}
+		else {
+			frameRadiusIncrement--;
+		}
+
 		animation.partRadius = ui.value;
+
+		if (animation.frameRadiusIncrement > 0 && animation.partRadius % animation.frameRadiusIncrement != 0) {
+
+			ui.value = Util.adaptToConstraint(
+				animation.frameRadiusIncrement,
+				frameRadiusIncrement,
+				function(v) {
+					return v == 0 || (animation.partRadius % v) == 0;
+				});
+			if (ui.value < 0 || ui.value > animation.partRadius) {
+				ui.value = animation.partRadius;
+			}
+
+			animation.frameRadiusIncrement = ui.value;
+		}
+
+		// Update the canvas immediately if the
+		// animation is not running
 
 		if (!animation.running) {
 			animation.paint();
@@ -329,7 +387,22 @@ function main() {
 
 	controls.frameRadiusIncrement.on("spin", function(e, ui) {
 
-		animation.frameRadiusIncrement = ui.value;
+		// Only stick to valid values
+
+		ui.value = Util.adaptToConstraint(
+			animation.frameRadiusIncrement,
+			ui.value,
+			function(v) {
+				return v == 0 || (animation.partRadius % v) == 0;
+			});
+
+		if (ui.value >= 0 && ui.value <= animation.partRadius) {
+			animation.frameRadiusIncrement = ui.value;
+		}
+
+		// Reset the current radius
+
+		animation.radius = 0;
 	});
 
 	controls.frameAngleIncrement.on("spin", function(e, ui) {
@@ -338,6 +411,7 @@ function main() {
 	});
 
 	controls.running.click(function() {
+
 		animation.running = !animation.running;
 	});
 
