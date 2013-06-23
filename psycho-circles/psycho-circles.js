@@ -78,18 +78,34 @@ Util.maxDistance = function(origin, points) {
 	return max;
 }
 
-// Given a value, find the closest approximation that
-// satisfies the provided constraint
+// Given a value, find the closest approximation that satisfies
+// the provided constraint and is within the given valid range
 
-Util.adaptToConstraint = function(previous, next, constraint) {
+Util.adaptToConstraint = function(previous, next, min, max, constraint) {
 
 	if (next >= previous) {
+
 		while (!constraint(next)) {
+
+			if (next >= max) {
+
+				next = max;
+				break;
+			}
+
 			next++
 		}
 	}
 	else {
+
 		while (!constraint(next)) {
+
+			if (next <= min) {
+
+				next = min;
+				break;
+			}
+
 			next--;
 		}
 	}
@@ -327,6 +343,8 @@ function main() {
 		ui.value = Util.adaptToConstraint(
 			animation.slices,
 			ui.value,
+			0,
+			360,
 			function(v) {
 				return v != 0 && (360 % v) == 0
 			});
@@ -366,6 +384,8 @@ function main() {
 			ui.value = Util.adaptToConstraint(
 				animation.frameRadiusIncrement,
 				frameRadiusIncrement,
+				0,
+				animation.partRadius,
 				function(v) {
 					return v == 0 || (animation.partRadius % v) == 0;
 				});
@@ -391,6 +411,8 @@ function main() {
 		ui.value = Util.adaptToConstraint(
 			animation.frameRadiusIncrement,
 			ui.value,
+			0,
+			animation.partRadius,
 			function(v) {
 				return v == 0 || (animation.partRadius % v) == 0;
 			});
