@@ -394,6 +394,10 @@ function main() {
 			}
 
 			animation.frameRadiusIncrement = ui.value;
+
+			// Reset the current radius
+
+			animation.radius = 0;
 		}
 
 		// Update the canvas immediately if the
