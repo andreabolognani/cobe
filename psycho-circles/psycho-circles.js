@@ -120,7 +120,6 @@ Animation = function(canvas) {
 	this.partAngle = 360 / this.slices;
 	this.frameRadiusIncrement = 2;
 	this.frameAngleIncrement = 1;
-	this.frameInterval = 20;
 
 	// State
 
@@ -302,7 +301,7 @@ function main() {
 		controls.frameRadiusIncrement.spinner("value", animation.frameRadiusIncrement);
 		controls.frameAngleIncrement.spinner("value", animation.frameAngleIncrement);
 
-	}, animation.frameInterval);
+	}, 20);
 
 	animation.canvas.click(function(e) {
 
