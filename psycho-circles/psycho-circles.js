@@ -148,10 +148,13 @@ Animation = function(canvas) {
 	};
 	this.running = false;
 	this.angle = 0;
+	this.previousRadius = 0;
 	this.radius = 0;
 }
 
 Animation.prototype.update = function() {
+
+	this.previousRadius = this.radius;
 
 	// Increase radius and angle by the configured amount
 
@@ -161,7 +164,7 @@ Animation.prototype.update = function() {
 	// Adjust angle when the numer of parts changes so that the
 	// transition between frames is smooth
 
-	if (this.radius <= 0) {
+	if (this.previousRadius > this.radius) {
 		this.angle = Util.normalizeAngle(this.angle + this.partAngle);
 	}
 }
