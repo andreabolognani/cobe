@@ -1,0 +1,25 @@
+tiles-puzzle
+============
+
+This applications solves a simple puzzle involving tiles with images
+printed on them.
+
+There are nine tiles, each one looks like this
+
+	 -------
+	|   o   |
+	| +   o |
+	|   o   |
+	 -------
+
+where "o" is the top of an image and "+" is the bottom; each part has
+one of four colors.
+
+Tiles are arranged in a 3x3 grid, and the puzzle is solved if all images
+formed where two tiles touch one another (12 in total) are complete. An
+image is complete if it's formed by a top and a bottom, and both parts
+are of the same color.
+
+A lot of the code is devoted to make JavaScript behave a little more like
+a pure functional programming language, eg. not modifying lists in place.
+Maybe I should just have coded it in Scheme ;)
