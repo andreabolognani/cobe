@@ -1,0 +1,8 @@
+Useless bit-based pretty printing
+=================================
+
+...besides, programmed without a consistent naming, but who cares, that's
+just for fun. And for escaping a world made of papers and no code. Cry of
+a hacker.
+
+You can figure out by yourself, this code is worth nothing.
