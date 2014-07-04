@@ -6,7 +6,7 @@
 
 typedef struct world_s * world_t;
 
-world_t world_create (uint cols);
+world_t world_create (uint cols, uint rows);
 void world_print(world_t w, FILE *stream);
 void world_destroy(world_t w);
 

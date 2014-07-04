@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     world_t w;
 
-    w = world_create(10);
+    w = world_create(5, 10);
     if (w == NULL) exit(EXIT_FAILURE);
 
     world_print(w, stdout);
