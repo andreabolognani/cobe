@@ -6,7 +6,10 @@
 #include <string.h>
 #include <stdint.h>
 
-typedef uint64_t column_t;
+typedef struct {
+    uint32_t cells;
+    uint32_t solid;
+} column_t;
 
 struct world_s {
     column_t *cols;
@@ -40,9 +43,24 @@ fail:
     return NULL;
 }
 
-uint32_t col_shift (uint32_t limit, uint32_t col)
+static void col_shift (column_t *col)
 {
-    return log2(col) + 1;
+    col->cells = (col->cells & col->solid)
+               | ((col->cells & ~col->solid) >> 1);
+}
+
+static void col_solidify (column_t *col)
+{
+    const uint32_t shift = col->solid + 1;
+    uint32_t block = col->cells / shift;
+
+    if (block > 0) {
+        uint32_t mask = 1;
+        while (block & mask) {
+            mask <<= 1;
+        }
+        col->solid |= (mask - 1) * shift;
+    }
 }
 
 void world_print (world_t w, FILE * stream)
@@ -53,9 +71,24 @@ void world_print (world_t w, FILE * stream)
 
     for (msk = max; msk > 0; msk >>= 1) {
         for (i = 0; i < w->ncols; i ++) {
-            fputc((w->cols[i] & msk) ? 'x' : '-', stream);
+            fputc((w->cols[i].cells & msk)
+                  ? (w->cols[i].solid & msk) ? 'x' : 'o'
+                  : '.',
+                stream
+            );
         }
         fputc('\n', stream);
+    }
+}
+
+void world_shift (world_t w)
+{
+    uint i;
+
+    for (i = 0; i < w->ncols; i ++) {
+        column_t *col = w->cols + i;
+        col_solidify(col);
+        col_shift(col);
     }
 }
 
