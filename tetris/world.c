@@ -1,14 +1,17 @@
 #include "world.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
+typedef uint64_t column_t;
+
 struct world_s {
-    uint32_t *cols;
+    column_t *cols;
+    uint32_t nrows;
     uint ncols;
-    uint nrows;
 };
 
 world_t world_create (uint ncols, uint nrows)
@@ -23,7 +26,7 @@ world_t world_create (uint ncols, uint nrows)
     out = malloc(sizeof(struct world_s));
     if (out == NULL) goto fail;
 
-    out->cols = malloc(sizeof(uint32_t) * ncols);
+    out->cols = malloc(sizeof(column_t) * ncols);
     if (out->cols == NULL) goto fail0;
 
     memset(out->cols, 0, sizeof(uint) * ncols);
@@ -37,15 +40,20 @@ fail:
     return NULL;
 }
 
-void world_print (world_t world, FILE * stream)
+uint32_t col_shift (uint32_t limit, uint32_t col)
+{
+    return log2(col) + 1;
+}
+
+void world_print (world_t w, FILE * stream)
 {
     uint i;
     uint32_t msk;
-    const uint32_t max = 1<<world->nrows;
+    const uint32_t max = 1 << w->nrows;
 
-    for (msk = 1; msk < max; msk <<= 1) {
-        for (i = 0; i < world->ncols; i ++) {
-            fputc((world->cols[i] & msk) ? 'x' : '-', stream);
+    for (msk = max; msk > 0; msk >>= 1) {
+        for (i = 0; i < w->ncols; i ++) {
+            fputc((w->cols[i] & msk) ? 'x' : '-', stream);
         }
         fputc('\n', stream);
     }
