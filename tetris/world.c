@@ -92,6 +92,114 @@ void world_shift (world_t w)
     }
 }
 
+static void insert_square (world_t w, uint col)
+{
+    uint32_t top = 1 << w->nrows;
+    column_t *c = w->cols + col;
+
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    c --;
+    c->cells |= top;
+}
+
+static void insert_rightL (world_t w, uint col)
+{
+    uint32_t top = 1 << w->nrows;
+    column_t *c = w->cols + col;
+
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+}
+
+static void insert_leftL (world_t w, uint col)
+{
+    uint32_t top = 1 << w->nrows;
+    column_t *c = w->cols + col + 2;
+
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    c --;
+    c->cells |= top;
+    c --;
+    c->cells |= top;
+}
+
+static void insert_rightS (world_t w, uint col)
+{
+    uint32_t top = 1 << (w->nrows - 1);
+    column_t *c = w->cols + col;
+
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+    top <<= 1;
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+}
+
+static void insert_leftS (world_t w, uint col)
+{
+    uint32_t top = 1 << w->nrows;
+    column_t *c = w->cols + col;
+
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    c ++;
+    c->cells |= top;
+}
+
+static void insert_I (world_t w, uint col)
+{
+    uint32_t top = 1 << w->nrows;
+    column_t *c = w->cols + col;
+
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+    top >>= 1;
+    c->cells |= top;
+}
+
+void world_insert (world_t w, block_t blk, uint col)
+{
+    switch (blk) {
+        case BLK_SQUARE:
+            insert_square(w, col);
+            break;
+        case BLK_RIGHTL:
+            insert_rightL(w, col);
+            break;
+        case BLK_LEFTL:
+            insert_leftL(w, col);
+            break;
+        case BLK_RIGHTS:
+            insert_rightS(w, col);
+            break;
+        case BLK_LEFTS:
+            insert_leftS(w, col);
+            break;
+        case BLK_I:
+            insert_I(w, col);
+            break;
+    }
+}
+
 void world_destroy (world_t w)
 {
     free(w->cols);
