@@ -9,6 +9,6 @@ It's implemented in C++, but using the UNIX API.
 If you are planning to use it, you may want to know that UDP should be
 limited somehow, as it will just send on the network as much traffic as
 you want. That's very likely to exceed the capabilities of your network,
-hence ruining the fun part (the one in which the data arrive to
+hence ruining the fun part (the one in which the data reaches the
 destination).
 
