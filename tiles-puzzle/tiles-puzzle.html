@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>tiles-puzzle</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="Author" content="Andrea Bolognani &lt;andrea.bolognani@roundhousecode.com&gt;" />
+		<script type="text/javascript">
+
+// tiles-puzzle.html - Solve a puzzle involving tiles with images on them
+// Copyright (C) 2014  Andrea Bolognani <andrea.bolognani@roundhousecode.com>
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+
+
+// -----------------
+//  List operations
+// -----------------
+
+var List;
+
+List = {};
+
+// Make a clone of a list
+List.clone = function(list) {
+	return list.slice(0, list.length);
+};
+
+// Create a new list with an element appended
+List.append = function(list, element) {
+	var result;
+
+	result = List.clone(list);
+	result.push(element);
+
+	return result;
+};
+
+// Find first occurrence of an item inside a list.
+// Comparisons are performed using .equals()
+List.index = function(list, element) {
+	var index;
+	var len;
+
+	index = -1;
+	len = list.length;
+
+	for (var i = 0; i < len; i++) {
+		if (list[i].equals(element)) {
+			index = i;
+			break;
+		}
+	}
+
+	return index;
+};
+
+// Create a new list that contains all the elements in the original
+// list, except for the one at the given index
+List.skip = function (list, element) {
+	var result;
+	var len;
+	var skip;
+
+	result = [];
+	len = list.length;
+	skip = List.index(list, element);
+
+	for (var i = 0; i < len; i++) {
+		if (i != skip) {
+			result.push(list[i]);
+		}
+	}
+
+	return result;
+};
+
+
+// --------------
+//  Enumerations
+// --------------
+
+var Part = {
+	TOP: "o",
+	BOTTOM: "+",
+	NONE: "&nbsp;"
+};
+
+var Color = {
+	YELLOW: "yellow",
+	RED: "red",
+	GREEN: "green",
+	PURPLE: "purple",
+	NONE: ""
+};
+
+
+// ---------
+//  Classes
+// ---------
+
+var Image;
+
+Image = function(color, part) {
+	this.color = color;
+	this.part = part;
+};
+
+// Two images complete each other if they have different parts
+// but the same color
+Image.prototype.completes = function(other) {
+	return this.color == other.color &&
+	       this.part != other.part;
+};
+
+Image.prototype.equals = function(other) {
+	return this.color == other.color &&
+	       this.part == other.part;
+};
+
+Image.prototype.toString = function() {
+	return "<span class=\"" + this.color + "\">" + this.part + "</span>";
+};
+
+
+var Tile;
+
+Tile = function(top, right, bottom, left) {
+	this.top = top;
+	this.right = right;
+	this.bottom = bottom;
+	this.left = left;
+};
+
+// Create a new tile which has the same images as the original one, but is
+// rotated 90 degrees clockwise
+Tile.prototype.rotated = function() {
+	return new Tile(this.left, this.top, this.right, this.bottom);
+};
+
+Tile.prototype.clone = function() {
+	return new Tile(this.top, this.right, this.bottom, this.left);
+};
+
+Tile.prototype.equals = function(other) {
+	return this.top.equals(other.top) &&
+	       this.right.equals(other.right) &&
+	       this.bottom.equals(other.bottom) &&
+	       this.left.equals(other.left);
+};
+
+Tile.prototype.toString = function() {
+	return "<table class=\"tile\">" +
+	       "<tr><td>&nbsp;</td><td>" + this.top.toString() + "</td><td>&nbsp;</td></tr>" +
+	       "<tr><td>" + this.left.toString() + "</td><td>&nbsp;</td><td>" + this.right.toString() + "</td></tr>" +
+	       "<tr><td>&nbsp;</td><td>" + this.bottom.toString() + "</td><td>&nbsp;</td></tr>" +
+	       "</table>";
+};
+
+
+var Solution;
+
+Solution = function() {
+	this.tiles = [];
+};
+
+// Get the tile at a specific position
+Solution.prototype.tileAt = function(row, column) {
+	var index;
+
+	index = (row * 3) + column;
+
+	if (index < this.tiles.length) {
+		return this.tiles[index];
+	}
+	else {
+		// If no tile has been inserted at the requested position, return
+		// a dummy tile with no images on it. Used for display purposes
+		return new Tile(
+			new Image(Color.NONE, Part.NONE),
+			new Image(Color.NONE, Part.NONE),
+			new Image(Color.NONE, Part.NONE),
+			new Image(Color.NONE, Part.NONE)
+		);
+	}
+};
+
+// Insert a tile into the solution. Rows are filled one bu
+// one, from left to right
+Solution.prototype.insert = function(tile) {
+	var clone;
+
+	clone = this.clone();
+	clone.tiles.push(tile);
+
+	return clone;
+};
+
+// Validate the last insertion. All previous insertions are assumed to have
+// been validated at an earlier time and are not checked again
+Solution.prototype.isValid = function() {
+	switch (this.tiles.length) {
+		case 0:
+			return true;
+		case 1:
+			return true;
+		case 2:
+			return this.tileAt(0,1).left.completes(this.tileAt(0,0).right);
+		case 3:
+			return this.tileAt(0,2).left.completes(this.tileAt(0,1).right);
+		case 4:
+			return this.tileAt(1,0).top.completes(this.tileAt(0,0).bottom);
+		case 5:
+			return this.tileAt(1,1).left.completes(this.tileAt(1,0).right) &&
+			       this.tileAt(1,1).top.completes(this.tileAt(0,1).bottom);
+		case 6:
+			return this.tileAt(1,2).left.completes(this.tileAt(1,1).right) &&
+			       this.tileAt(1,2).top.completes(this.tileAt(0,2).bottom);
+		case 7:
+			return this.tileAt(2,0).top.completes(this.tileAt(1,0).bottom);
+		case 8:
+			return this.tileAt(2,1).left.completes(this.tileAt(2,0).right) &&
+			       this.tileAt(2,1).top.completes(this.tileAt(1,1).bottom);
+		case 9:
+			return this.tileAt(2,2).left.completes(this.tileAt(2,1).right) &&
+			       this.tileAt(2,2).top.completes(this.tileAt(1,2).bottom);
+	}
+};
+
+// Rotate an entire solution
+Solution.prototype.rotated = function() {
+	var rotated;
+
+	rotated = new Solution();
+
+	for (var column = 0; column < 3; column++) {
+		for (var row = 2; row >= 0; row--) {
+			rotated = rotated.insert(this.tileAt(row,column).rotated());
+		}
+	}
+
+	return rotated;
+};
+
+// Compare solutions taking rotations into account
+Solution.prototype.isRotationOf = function(other) {
+	return this.equals(other) ||
+	       this.equals(other.rotated()) ||
+	       this.equals(other.rotated().rotated()) ||
+	       this.equals(other.rotated().rotated().rotated());
+};
+
+Solution.prototype.clone = function() {
+	var clone;
+
+	clone = new Solution();
+
+	this.tiles.forEach(function(tile) {
+		clone.tiles.push(tile);
+	});
+
+	return clone;
+};
+
+Solution.prototype.equals = function(other) {
+	for (var row = 0; row < 3; row++) {
+		for (var column = 0; column < 3; column++) {
+			if (!this.tileAt(row, column).equals(other.tileAt(row, column))) {
+				return false;
+			}
+		}
+	}
+	return true;
+};
+
+Solution.prototype.toString = function() {
+	return "<table class=\"solution\">" +
+	       "<tr><td>" + this.tileAt(0,0).toString() + "</td>" +
+	       "<td>" + this.tileAt(0,1).toString() + "</td>" +
+	       "<td>" + this.tileAt(0,2).toString() + "</td></tr>" +
+	       "<tr><td>" + this.tileAt(1,0).toString() + "</td>" +
+	       "<td>" + this.tileAt(1,1).toString() + "</td>" +
+	       "<td>" + this.tileAt(1,2).toString() + "</td></tr>" +
+	       "<tr><td>" + this.tileAt(2,0).toString() + "</td>" +
+	       "<td>" + this.tileAt(2,1).toString() + "</td>" +
+	       "<td>" + this.tileAt(2,2).toString() + "</td></tr>" +
+	       "</table>";
+};
+
+
+// -------------
+//  Puzzle data
+// -------------
+
+var TILES = [
+	new Tile(
+		new Image(Color.RED, Part.BOTTOM),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.YELLOW, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.PURPLE, Part.BOTTOM),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.RED, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.YELLOW, Part.BOTTOM),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.RED, Part.TOP),
+		new Image(Color.GREEN, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.YELLOW, Part.BOTTOM),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.YELLOW, Part.TOP),
+		new Image(Color.RED, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.YELLOW, Part.BOTTOM),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.RED, Part.TOP),
+		new Image(Color.GREEN, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.RED, Part.BOTTOM),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.YELLOW, Part.TOP),
+		new Image(Color.GREEN, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.RED, Part.BOTTOM),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.YELLOW, Part.TOP),
+		new Image(Color.PURPLE, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.YELLOW, Part.BOTTOM),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.RED, Part.TOP),
+		new Image(Color.PURPLE, Part.BOTTOM)
+	),
+	new Tile(
+		new Image(Color.PURPLE, Part.BOTTOM),
+		new Image(Color.GREEN, Part.TOP),
+		new Image(Color.PURPLE, Part.TOP),
+		new Image(Color.RED, Part.BOTTOM)
+	)
+];
+
+// Calculate all possible solutions to the game
+var solve = function() {
+
+	var solutionsContain = function(solutions, candidate) {
+		// Return true if either the candidate or one of its
+		// rotations are in the list
+		return solutions.some(function(solution) {
+			return solution.isRotationOf(candidate);
+		});
+	};
+
+	var actualSolve = function(base, tiles, solutions) {
+
+		// If all tiles have already been inserted, the current
+		// candidate is an actual solution. Skip it only if it's a
+		// rotation of a solution we'd already found
+		if (tiles.length == 0 && !solutionsContain(solutions, base)) {
+			solutions = List.append(solutions, base);
+		}
+
+		tiles.forEach(function(tile) {
+			var rotations;
+
+			// Generate all possible rotations of the tile, since
+			// it could be placed in any position
+			rotations = [
+				tile,
+				tile.rotated(),
+				tile.rotated().rotated(),
+				tile.rotated().rotated().rotated()
+			];
+
+			rotations.forEach(function(rotation) {
+				var candidate;
+
+				candidate = base.insert(rotation);
+
+				// If the current insertion is valid, move forward
+				if (candidate.isValid()) {
+					solutions = actualSolve(candidate, List.skip(tiles, tile), solutions);
+				}
+			});
+		});
+
+		return solutions;
+	};
+
+	return actualSolve(new Solution(), TILES, []);
+};
+
+
+// -------------
+//  Entry point
+// -------------
+
+var main = function() {
+	var solutions;
+	var body;
+	var startTime;
+	var endTime;
+
+	body = "";
+
+	startTime = Date.now();
+	solutions = solve();
+	endTime = Date.now();
+
+	solutions.forEach(function(solution) {
+		body += solution.toString();
+	});
+
+	body += "<p>Execution time: " + (endTime - startTime) + " milliseconds</p>";
+
+	document.body.innerHTML = body;
+};
+
+		</script>
+		<style type="text/css">
+body {
+	font-family: monospace;
+}
+
+span.red {
+	color: red;
+}
+
+span.yellow {
+	color: yellow;
+}
+
+span.green {
+	color: green;
+}
+
+span.purple {
+	color: purple;
+}
+
+table.tile {
+	border: 1px solid black;
+}
+
+table.tile td {
+	padding: 0.5em 0.7em;
+}
+
+table.solution {
+	margin: 1em;
+	border: 0;
+	float: left;
+}
+
+p {
+	font-family: sans-serif;
+	clear: both;
+}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">main();</script>
+	</body>
+</html>
