@@ -11,10 +11,17 @@ typedef struct {
     uint32_t solid;
 } column_t;
 
+typedef struct {
+    block_kind_t kind;
+    uint steps;
+    uint col;
+} block_t;
+
 struct world_s {
     column_t *cols;
     uint32_t nrows;
     uint ncols;
+    block_t current_block;
 };
 
 world_t world_create (uint ncols, uint nrows)
@@ -35,6 +42,9 @@ world_t world_create (uint ncols, uint nrows)
     memset(out->cols, 0, sizeof(uint) * ncols);
     out->ncols = ncols;
     out->nrows = nrows;
+    out->current_block.steps = 0;
+    out->current_block.col = 0;
+    out->current_block.kind = BLK_NONE;
 
     return out;
 fail0:
@@ -176,9 +186,13 @@ static void insert_I (world_t w, uint col)
     c->cells |= top;
 }
 
-void world_insert (world_t w, block_t blk, uint col)
+void world_insert (world_t w, block_kind_t kind, uint col)
 {
-    switch (blk) {
+    w->current_block.steps = 0;
+    w->current_block.col = col;
+    w->current_block.kind = kind;
+
+    switch (kind) {
         case BLK_SQUARE:
             insert_square(w, col);
             break;
@@ -197,6 +211,8 @@ void world_insert (world_t w, block_t blk, uint col)
         case BLK_I:
             insert_I(w, col);
             break;
+        default:
+            return;
     }
 }
 
