@@ -16,7 +16,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#define BUFFER_SIZE 4096
 
 /* Limits for valid input */
 #define SPACE        32
@@ -81,17 +88,79 @@ convert (char *text)
 	printf ("\n");
 }
 
+char*
+load (char *infile)
+{
+	char *text;
+	char  buffer[BUFFER_SIZE];
+	int   len;
+	int   count;
+	int   fd;
+	int   i;
+
+	text = NULL;
+	len = 0;
+	i = 0;
+
+	/* Open file for input */
+	fd = open (infile, O_RDONLY);
+
+	if (fd < 0)
+	{
+		return NULL;
+	}
+
+	while (1)
+	{
+		count = read (fd, buffer, BUFFER_SIZE);
+
+		/* End of input reached */
+		if (count == 0)
+		{
+			if (text != NULL)
+			{
+				text[i] = '\0';
+			}
+			break;
+		}
+
+		/* Extend the buffer */
+		len = len + count;
+		text = realloc (text, len * sizeof (char));
+
+		/* Copy the input and move the cursor */
+		memcpy (text + (i * sizeof (char)), buffer, count);
+		i += count;
+	}
+
+	close (fd);
+
+	return text;
+}
+
 int
 main (int    argc,
       char **argv)
 {
+	char *text;
+
 	if (argc < 2)
 	{
-		fprintf (stderr, "Usage: %s TEXT\n", argv[0]);
+		fprintf (stderr, "Usage: %s FILE\n", argv[0]);
 		return 1;
 	}
 
-	convert (argv[1]);
+	text = load (argv[1]);
+
+	if (text == NULL)
+	{
+		fprintf (stderr, "%s: Error reading '%s'\n", argv[0], argv[1]);
+		return 1;
+	}
+
+	convert (text);
+
+	free (text);
 
 	return 0;
 }
