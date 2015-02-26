@@ -45,8 +45,8 @@ update = function() {
 
 	/* Update the size of the item so that it's half the
 	 * viewport both in width and in height */
-	item.style.width = itemWidth;
-	item.style.height = itemHeight;
+	item.style.width = itemWidth + "px";
+	item.style.height = itemHeight + "px";
 
 	item.innerHTML = "<p>" +
 	                 "pixel ratio: " + window.devicePixelRatio +
