@@ -1,0 +1,67 @@
+<html>
+	<head>
+		<title>web-scaling</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style type="text/css">
+body {
+	margin: 0;
+	background-color: #c0fdde;
+}
+
+#item {
+	display: table;
+	overflow: hidden;
+	float: right;
+}
+
+#item p {
+	display: table-cell;
+	width: 100%;
+	margin: 0 auto;
+	text-align: center;
+	vertical-align: middle;
+	color: #fffff5;
+	background-color: #c6acc7;
+}
+		</style>
+		<script type="text/javascript">
+var update;
+update = function() {
+
+	var item;
+	var viewportWidth;
+	var viewportHeight;
+	var itemWidth;
+	var itemHeight;
+
+	item = document.getElementById("item");
+
+	viewportWidth = window.innerWidth;
+	viewportHeight = window.innerHeight;
+	itemWidth = Math.floor(viewportWidth / 2);
+	itemHeight = Math.floor(viewportHeight / 2);
+
+	/* Update the size of the item so that it's half the
+	 * viewport both in width and in height */
+	item.style.width = itemWidth;
+	item.style.height = itemHeight;
+
+	item.innerHTML = "<p>" +
+	                 "pixel ratio: " + window.devicePixelRatio +
+	                 "<br />" +
+	                 "viewport: " + viewportWidth + "x" + viewportHeight +
+	                 "<br />" +
+	                 "item: " + itemWidth + "x" + itemHeight +
+	                 "</p>";
+};
+
+/* Call update() once when the document finishes loading, and once for
+ * every time the window is resized or the zoom factor changes */
+window.onload = update;
+window.onresize = update;
+		</script>
+	</head>
+	<body>
+		<div id="item"></div>
+	</body>
+</html>
