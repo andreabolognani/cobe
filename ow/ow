@@ -36,9 +36,12 @@ usage() {
 
 main() {
 	local profile
-	local rest
+	local send_emails
 	local conf
 	local obnam_conf
+	local log_file
+	local opts
+	local rest
 
 	# Parse command line
 	while test $# -gt 0
@@ -49,6 +52,9 @@ main() {
 				shift
 				profile=$1
 				test "$profile" || usage
+				;;
+			-m)
+				send_emails=yes
 				;;
 			*)
 				break
@@ -74,8 +80,16 @@ main() {
 	# end up including random stuff in the backup because of this
 	cd /tmp || die "Could not switch to /tmp"
 
+	opts="--config=$obnam_conf"
+
+	test "$send_emails" && {
+		log_file=$(mktemp -p /tmp "$APP.XXXXXXXXXXXX")
+		opts="$opts --log=$log_file"
+	}
+
 	# Run obnam
-	obnam --config "$obnam_conf" $rest
+	echo Running obnam $opts $rest
+	obnam $opts $rest
 }
 
 main "$@"
