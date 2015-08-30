@@ -97,8 +97,8 @@ main() {
 		# Send emails, including all useful information in the
 		# subject and the full log in the body
 		mail \
-			-s "$APP ($profile) on $(hostname -f), rc=$rc" \
-			-r "obnam@$(hostname -f)" \
+			-s "$APP@$(hostname -f) ($profile), rc=$rc" \
+			-r "$APP@$(hostname -f)" \
 			$rcpts <"$log_file"
 		rm -f "$log_file"
 	}
