@@ -93,6 +93,16 @@ main() {
 	obnam $opts $rest
 	rc=$?
 
+	test "$send_emails" && {
+		# Send emails, including all useful information in the
+		# subject and the full log in the body
+		mail \
+			-s "$APP ($profile) on $(hostname -f), rc=$rc" \
+			-r "obnam@$(hostname -f)" \
+			$rcpts <"$log_file"
+		rm -f "$log_file"
+	}
+
 	return $rc
 }
 
