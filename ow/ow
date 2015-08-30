@@ -42,6 +42,7 @@ main() {
 	local log_file
 	local opts
 	local rest
+	local rc
 
 	# Parse command line
 	while test $# -gt 0
@@ -90,6 +91,9 @@ main() {
 	# Run obnam
 	echo Running obnam $opts $rest
 	obnam $opts $rest
+	rc=$?
+
+	return $rc
 }
 
 main "$@"
