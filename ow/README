@@ -1,0 +1,5 @@
+ow - Obnam Wrapper that adds a few features
+===========================================
+
+A simple script to make obnam usage more convenient when dealing
+with multiple hosts and scheduled backups. Nothing fancy.
