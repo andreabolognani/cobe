@@ -94,6 +94,9 @@ main() {
 	rc=$?
 
 	test "$send_emails" -a "$MAIL_RECIPIENTS" && {
+		# Sender address for emails
+		mail_from="$APP@$(hostname -f)"
+
 		# Send emails, including all useful information in the
 		# subject and the full log in the body. The emails will
 		# be sent through a remote host if so configured
@@ -102,13 +105,13 @@ main() {
 			ssh \
 				"$MAIL_USER@$MAIL_HOST" \
 				mail \
-					-s "'$APP@$(hostname -f) ($profile), rc=$rc'" \
-					-r "'$APP@$(hostname -f)'" \
+					-s "'$mail_from ($profile), rc=$rc'" \
+					-r "'$mail_from'" \
 					$MAIL_RECIPIENTS <"$log_file"
 		else
 			mail \
-				-s "$APP@$(hostname -f) ($profile), rc=$rc" \
-				-r "$APP@$(hostname -f)" \
+				-s "$mail_from ($profile), rc=$rc" \
+				-r "$mail_from" \
 				$MAIL_RECIPIENTS <"$log_file"
 		fi
 		rm -f "$log_file"
