@@ -83,7 +83,7 @@ main() {
 
 	opts="--config=$obnam_conf"
 
-	test "$send_emails" && {
+	test "$send_emails" -a "$rcpts" && {
 		log_file=$(mktemp -p /tmp "$APP.XXXXXXXXXXXX")
 		opts="$opts --log=$log_file"
 	}
@@ -93,7 +93,7 @@ main() {
 	obnam $opts $rest
 	rc=$?
 
-	test "$send_emails" && {
+	test "$send_emails" -a "$rcpts" && {
 		# Send emails, including all useful information in the
 		# subject and the full log in the body
 		mail \
