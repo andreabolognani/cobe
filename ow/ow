@@ -83,7 +83,7 @@ main() {
 
 	opts="--config=$obnam_conf"
 
-	test "$send_emails" -a "$rcpts" && {
+	test "$send_emails" -a "$MAIL_RECIPIENTS" && {
 		log_file=$(mktemp -p /tmp "$APP.XXXXXXXXXXXX")
 		opts="$opts --log=$log_file"
 	}
@@ -93,23 +93,23 @@ main() {
 	obnam $opts $rest
 	rc=$?
 
-	test "$send_emails" -a "$rcpts" && {
+	test "$send_emails" -a "$MAIL_RECIPIENTS" && {
 		# Send emails, including all useful information in the
 		# subject and the full log in the body. The emails will
 		# be sent through a remote host if so configured
-		if test "$mail_host" -a "$mail_user"
+		if test "$MAIL_HOST" -a "$MAIL_USER"
 		then
 			ssh \
-				"$mail_user@$mail_host" \
+				"$MAIL_USER@$MAIL_HOST" \
 				mail \
 					-s "'$APP@$(hostname -f) ($profile), rc=$rc'" \
 					-r "'$APP@$(hostname -f)'" \
-					$rcpts <"$log_file"
+					$MAIL_RECIPIENTS <"$log_file"
 		else
 			mail \
 				-s "$APP@$(hostname -f) ($profile), rc=$rc" \
 				-r "$APP@$(hostname -f)" \
-				$rcpts <"$log_file"
+				$MAIL_RECIPIENTS <"$log_file"
 		fi
 		rm -f "$log_file"
 	}
