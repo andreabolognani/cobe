@@ -1,0 +1,8 @@
+offlineimap.sh - offlineimap wrapper
+====================================
+
+Features:
+
+  * log everything
+  * prevent multiple instances
+  * show desktop notifications
