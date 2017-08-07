@@ -59,7 +59,7 @@ function main() {
 
   # Import environment from gnome-shell
 
-  ENV_IMPORT='DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS'
+  ENV_IMPORT='DBUS_SESSION_BUS_ADDRESS'
   ps ux | while read _ pid _ _ _ _ _ _ _ _ exe _
   do
     exe=${exe##*/}
