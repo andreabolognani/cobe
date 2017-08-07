@@ -68,6 +68,7 @@ function main() {
     for var in $ENV_IMPORT
     do
       var=$(grep -az "^$var=" "/proc/$pid/environ" | tr -d '\0')
+      test "$var" || continue
       echo "export $var"
     done
   done >"$ENV"
